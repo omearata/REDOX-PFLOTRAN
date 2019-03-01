@@ -1,0 +1,403 @@
+
+#Description: Batch CLM-CN simulation
+# Rate constants, C/N ratios, respiration fractions from Bonan et al., 2012
+
+SIMULATION
+  SIMULATION_TYPE SUBSURFACE
+  PROCESS_MODELS
+    SUBSURFACE_TRANSPORT transport
+      GLOBAL_IMPLICIT
+      NUMERICAL_JACOBIAN
+    /
+  /
+END
+
+SUBSURFACE
+
+#=========================== useful transport parameters =======================
+SPECIFIED_VELOCITY
+  UNIFORM? YES
+  DATASET 0.d0 0.d0 0.d0
+END
+
+REFERENCE_LIQUID_DENSITY 1.d3
+
+
+#=========================== chemistry ========================================
+CHEMISTRY
+  PRIMARY_SPECIES
+    NH4+
+    NO3-
+    O2(aq)
+    N2(aq)
+    H+
+    NH3(aq)
+    DOM1
+    DOM2
+    DOM3
+    CO2(aq)
+    HCO3-
+    CH4(aq)
+    SO4--
+    H2S(aq)
+  /
+  DECOUPLED_EQUILIBRIUM_REACTIONS
+    NH4+
+    NO3-
+    N2(aq)
+    NH3(aq)
+    CO2(aq)
+    HCO3-
+    CH4(aq)
+    SO4--
+    H2S(aq)
+  /
+  MINERALS
+    SOM1
+  /
+  IMMOBILE_SPECIES
+    SOM2
+    nitrifiers
+    denitrifiers
+    MPB
+    methanogens
+    DOM4
+  /
+  GAS_SPECIES
+    CO2(g)
+    O2(g)
+    N2(g)*
+  /
+  MINERAL_KINETICS
+    SOM1
+      PREFACTOR
+        RATE_CONSTANT 2.d-16 mol/cm^2-sec
+        ACTIVATION_ENERGY 51.7d0
+        PREFACTOR_SPECIES O2(aq)
+          ALPHA 0.5d-1
+        /
+       /   
+      /
+     /
+  TRUNCATE_CONCENTRATION 1.d-15
+
+#DOM DECAY
+  GENERAL_REACTION
+    REACTION DOM1 + O2(aq) <-> DOM2 + CO2(aq)
+    FORWARD_RATE 9.d-1
+  /
+#NITRIFICATION
+  MICROBIAL_REACTION
+    REACTION NH4+ + O2(aq) + DOM1 -> 3.d0 NO3- + 3.d0 H2O + 12.d0 CO2(aq) + DOM2
+    RATE_CONSTANT 2.8d-1 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME NH4+ 
+      HALF_SATURATION_CONSTANT 0.1d-3 #Gao et al 2010
+    /
+    INHIBITION
+      SPECIES_NAME DOM1
+      TYPE INVERSE_MONOD
+      INHIBITION_CONSTANT 6.25d-8
+    /
+    INHIBITION
+      SPECIES_NAME O2(aq)
+      TYPE INVERSE_MONOD
+      INHIBITION_CONSTANT 6.25d-8
+    /
+    INHIBITION
+      SPECIES_NAME CO2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-5
+    /
+    BIOMASS
+      SPECIES_NAME nitrifiers
+      YIELD 0.01d0
+    /
+  /
+#DENITRIFICATION DOM1
+  MICROBIAL_REACTION 
+    REACTION DOM1 + 4.d0 NO3- + 12.d0 H+ -> DOM2 + 6.d0 CO2(aq) + 2.d0 N2(aq) + 12.d0 H2O
+    RATE_CONSTANT 5.56d1 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME NO3-
+      HALF_SATURATION_CONSTANT 6.3d-2  #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME DOM1
+      HALF_SATURATION_CONSTANT 5.d-2
+    /
+    INHIBITION
+      SPECIES_NAME O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-8   #using hypoxia as a requirement O2 must be < 2mg/L for DEN
+    /
+    BIOMASS
+      SPECIES_NAME denitrifiers
+      YIELD 0.01d0
+    /
+  /
+#DENITRIFICATION DOM2
+  MICROBIAL_REACTION 
+    REACTION DOM2 + 4.d0 NO3- + 12.d0 H+ -> DOM3 + 6.d0 CO2(aq) + 2.d0 N2(aq) + 12.d0 H2O
+    RATE_CONSTANT 5.56d0 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME NO3-
+      HALF_SATURATION_CONSTANT 6.3d-2  #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME DOM2
+      HALF_SATURATION_CONSTANT 5.d-2
+    /
+    INHIBITION
+      SPECIES_NAME O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-8   #using hypoxia as a requirement O2 must be < 2mg/L for DEN
+    /
+    BIOMASS
+      SPECIES_NAME denitrifiers
+      YIELD 0.01d0
+    /
+  /
+#Sulfate reduction
+  MICROBIAL_REACTION 
+    REACTION DOM2 + SO4-- + 2.0 H+ -> CO2(aq) + DOM3 + H2S(aq)
+    RATE_CONSTANT 5.56d1 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME SO4--
+      HALF_SATURATION_CONSTANT 6.3d-2  #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME DOM2
+      HALF_SATURATION_CONSTANT 6.3d0  #Gao et al 2010
+    /
+    INHIBITION
+      SPECIES_NAME NO3-
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-5
+    /
+    INHIBITION
+      SPECIES_NAME O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-5   #using hypoxia as a requirement O2 must be < 2mg/L for DEN
+    /
+    BIOMASS
+      SPECIES_NAME methanogens
+      YIELD 0.01d0
+    /
+  /
+#Methanogenesis DOM2
+  MICROBIAL_REACTION 
+    REACTION CO2(aq) + 8.d0 H+ + DOM2 -> CH4(aq) + 2.d0 H2O + DOM3
+    RATE_CONSTANT 9.56d2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME DOM2
+      HALF_SATURATION_CONSTANT 6.3d-2  #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME CO2(aq)
+      HALF_SATURATION_CONSTANT 6.3d0  #Gao et al 2010
+    /
+    INHIBITION
+      SPECIES_NAME SO4--
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-8
+    /
+    INHIBITION
+      SPECIES_NAME NO3-
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-8   #using hypoxia as a requirement O2 must be < 2mg/L for DEN
+    /
+    BIOMASS
+      SPECIES_NAME methanogens
+      YIELD 0.01d0
+    /
+  /
+#Methanogenesis DOM3
+  MICROBIAL_REACTION 
+    REACTION CO2(aq) + 8.d0 H+ + DOM3 -> CH4(aq) + 2.d0 H2O + DOM4
+    RATE_CONSTANT 9.56d2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME DOM3
+      HALF_SATURATION_CONSTANT 6.3d-2  #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME CO2(aq)
+      HALF_SATURATION_CONSTANT 6.3d0  #Gao et al 2010
+    /
+    INHIBITION
+      SPECIES_NAME SO4--
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-8
+    /
+    INHIBITION
+      SPECIES_NAME NO3-
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-8   #using hypoxia as a requirement O2 must be < 2mg/L for DEN
+    /
+    BIOMASS
+      SPECIES_NAME methanogens
+      YIELD 0.01d0
+    /
+  /
+skip
+  GENERAL_REACTION
+    REACTION DOM2 <-> DOM3 + CO2(aq)
+    FORWARD_RATE 1.d-8
+  /  
+    GENERAL_REACTION
+    REACTION DOM3 <-> 
+    FORWARD_RATE 1.d-8
+  /
+noskip 
+#  LOG_FORMULATION
+  DATABASE ./hanford.dat
+
+  OUTPUT
+    PH
+    TOTAL
+      H+
+      NH4+
+      NO3-
+      O2(aq)
+      CH4(aq)
+      H2S(aq)
+      SO4--
+#      N2(aq)
+#      H+
+#      NH3(aq)
+      DOM1
+      DOM2
+      DOM3
+#      DOM4
+      CO2(aq)
+#      HCO3-
+#      nitrifiers
+#      denitrifiers
+#      methanogens
+#      MPB
+#     SOM1
+noskip
+  /
+END
+
+#=========================== transport constraints ============================
+CONSTRAINT initial
+  CONCENTRATIONS
+    NH4+        3.d-6      T
+    NH3(aq)     1.9d-15     T
+    NO3-        4.5d-10     T
+    O2(aq)      1.06d-4    T  #G O2(g)
+    N2(aq)      4.65d-15    T #G  N2(g)*
+    H+          8          P
+    DOM1        1.d-15      T
+    DOM2        1.d-15      T
+    DOM3        1.d-15      T
+    CO2(aq)     1.36d-5    T
+    HCO3-       5.76e-5    T
+    CH4(aq)     1.d-15      T
+    SO4--       5.76e-5    T
+    H2S(aq)     1.d-15      T
+    /
+  IMMOBILE     # [mol/m^3 bulk]
+    nitrifiers    1.d-8
+    denitrifiers  1.d-8
+    MPB           1.d-8
+    methanogens   1.d-8
+    SOM2          1.d-15
+    DOM4          1.d-15
+    /
+  MINERALS
+    SOM1   2.d-5   1. cm^2/cm^3
+#    SOM2  1.d-40   1. cm^2/cm^3
+#    SOM3  1.d-40   1. cm^2/cm^3
+    /
+END
+
+#=========================== solver options ===================================
+LINEAR_SOLVER TRANSPORT
+  SOLVER DIRECT
+END
+
+NEWTON_SOLVER TRANSPORT
+  ATOL 1.d-50
+#  RTOL 1.d-12
+END
+
+#=========================== discretization ===================================
+GRID
+  TYPE structured
+  ORIGIN 0.d0 0.d0 0.d0
+  NXYZ 1 1 10
+  DXYZ
+    1.d0
+    1.d0
+    1.d0
+  /
+END
+
+#=========================== fluid properties =================================
+FLUID_PROPERTY
+  DIFFUSION_COEFFICIENT 1.d-9
+END
+
+#=========================== material properties ==============================
+MATERIAL_PROPERTY soil1
+  ID 1
+  POROSITY 0.25d0
+  TORTUOSITY 1.d0
+END
+
+#=========================== output options ===================================
+OUTPUT
+  PERIODIC_OBSERVATION TIMESTEP 1
+END
+
+#=========================== times ============================================
+TIME
+  FINAL_TIME 600.d0 d
+  INITIAL_TIMESTEP_SIZE 6.d0 h
+  MAXIMUM_TIMESTEP_SIZE 1.d0 d
+END
+
+#=========================== regions ==========================================
+REGION all
+  COORDINATES
+    0.d0 0.d0 0.d0
+    1.d0 1.d0 10.d0
+  /
+END
+
+REGION obs_pt
+  COORDINATE 0.5 0.5 5.0
+END
+
+#=========================== observation points ===============================
+OBSERVATION
+  REGION obs_pt
+END
+
+#=========================== transport conditions =============================
+TRANSPORT_CONDITION initial
+  TYPE zero_gradient
+  CONSTRAINT_LIST
+    0.d0 initial
+  /
+END
+
+
+
+#=========================== condition couplers ===============================
+# initial condition
+INITIAL_CONDITION
+  TRANSPORT_CONDITION initial
+  REGION all
+END
+
+#=========================== stratigraphy couplers ============================
+STRATA
+  REGION all
+  MATERIAL soil1
+END
+
+
+END_SUBSURFACE
