@@ -81,39 +81,32 @@ CHEMISTRY
      /
   TRUNCATE_CONCENTRATION 1.d-15
 
-#DOM DECAY
+#DOM RESPIRATION
   GENERAL_REACTION
     REACTION DOM1 + O2(aq) <-> DOM2 + CO2(aq)
     FORWARD_RATE 9.d-1
   /
+
 #NITRIFICATION
   MICROBIAL_REACTION
-    REACTION NH4+ + O2(aq) + DOM1 -> 3.d0 NO3- + 3.d0 H2O + 12.d0 CO2(aq) + DOM2
-    RATE_CONSTANT 2.8d-1 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    REACTION 2.0 NH4+ + O2(aq) + 2.0 HCO3- -> 2.d0 NO3- + 3.d0 H2O + 2.d0 CO2(aq)
+    RATE_CONSTANT 9.0d-1 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
     MONOD
       SPECIES_NAME NH4+ 
       HALF_SATURATION_CONSTANT 0.1d-3 #Gao et al 2010
     /
     INHIBITION
-      SPECIES_NAME DOM1
+      SPECIES_NAME HCO3-
       TYPE INVERSE_MONOD
-      INHIBITION_CONSTANT 6.25d-8
+      INHIBITION_CONSTANT 6.25d-10
     /
     INHIBITION
       SPECIES_NAME O2(aq)
       TYPE INVERSE_MONOD
       INHIBITION_CONSTANT 6.25d-8
     /
-    INHIBITION
-      SPECIES_NAME CO2(aq)
-      TYPE MONOD
-      INHIBITION_CONSTANT 6.25d-5
-    /
-    BIOMASS
-      SPECIES_NAME nitrifiers
-      YIELD 0.01d0
-    /
   /
+
 #DENITRIFICATION DOM1
   MICROBIAL_REACTION 
     REACTION DOM1 + 4.d0 NO3- + 12.d0 H+ -> DOM2 + 6.d0 CO2(aq) + 2.d0 N2(aq) + 12.d0 H2O
@@ -136,6 +129,7 @@ CHEMISTRY
       YIELD 0.01d0
     /
   /
+
 #DENITRIFICATION DOM2
   MICROBIAL_REACTION 
     REACTION DOM2 + 4.d0 NO3- + 12.d0 H+ -> DOM3 + 6.d0 CO2(aq) + 2.d0 N2(aq) + 12.d0 H2O
@@ -158,6 +152,7 @@ CHEMISTRY
       YIELD 0.01d0
     /
   /
+
 #Sulfate reduction
   MICROBIAL_REACTION 
     REACTION DOM2 + SO4-- + 2.0 H+ -> CO2(aq) + DOM3 + H2S(aq)
@@ -185,6 +180,7 @@ CHEMISTRY
       YIELD 0.01d0
     /
   /
+
 #Methanogenesis DOM2
   MICROBIAL_REACTION 
     REACTION CO2(aq) + 8.d0 H+ + DOM2 -> CH4(aq) + 2.d0 H2O + DOM3
@@ -239,23 +235,14 @@ CHEMISTRY
       YIELD 0.01d0
     /
   /
-skip
-  GENERAL_REACTION
-    REACTION DOM2 <-> DOM3 + CO2(aq)
-    FORWARD_RATE 1.d-8
-  /  
-    GENERAL_REACTION
-    REACTION DOM3 <-> 
-    FORWARD_RATE 1.d-8
-  /
-noskip 
+
 #  LOG_FORMULATION
   DATABASE ./hanford.dat
 
   OUTPUT
-    PH
+#    PH
     TOTAL
-      H+
+#      H+
       NH4+
       NO3-
       O2(aq)
@@ -263,14 +250,13 @@ noskip
       H2S(aq)
       SO4--
 #      N2(aq)
-#      H+
 #      NH3(aq)
       DOM1
       DOM2
       DOM3
 #      DOM4
       CO2(aq)
-#      HCO3-
+      HCO3-
 #      nitrifiers
 #      denitrifiers
 #      methanogens
