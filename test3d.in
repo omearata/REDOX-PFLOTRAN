@@ -85,13 +85,12 @@ CHEMISTRY
 
 #Fe+++
     FeNO3++
-
     FeSO4+
-#    FeCO3+ #flatlines [Fe+++]  
-#    FeOH++ #flatlines [Fe+++]    
-#    Fe(OH)2+ #causes exponential increase in [Fe+++]
-#    Fe(OH)3(aq) #causes exponential increase in [Fe+++]
-#    Fe(OH)4- #causes exponential increase in [Fe+++]
+    FeCO3+ #flatlines [Fe+++]  
+    FeOH++ #flatlines [Fe+++]    
+    Fe(OH)2+ #causes exponential increase in [Fe+++]
+    Fe(OH)3(aq) #causes exponential increase in [Fe+++]
+    Fe(OH)4- #causes exponential increase in [Fe+++]
     FeCl++
     FeCl4-
 
@@ -111,6 +110,16 @@ CHEMISTRY
     Troilite
     Fe(OH)3
     Halite
+    Fe
+    Fe(OH)2
+    FeO
+    Ferrihydrite
+    Goethite
+    Hematite
+    Magnetite
+    Pyrrhotite
+    Sulfur
+    Wustite
 
   /
   IMMOBILE_SPECIES
@@ -128,7 +137,36 @@ CHEMISTRY
     NH3(g)
   /
   MINERAL_KINETICS
-
+    Fe
+      RATE_CONSTANT 1.d-26 mol/m^2-sec
+      /
+    Fe(OH)2
+      RATE_CONSTANT 1.d-16 mol/m^2-sec
+      /
+    FeO
+      RATE_CONSTANT 1.d-16 mol/m^2-sec
+      /
+    Ferrihydrite
+      RATE_CONSTANT 1.d-16 mol/m^2-sec
+      /
+    Goethite
+      RATE_CONSTANT 1.d-16 mol/m^2-sec
+      /
+    Hematite
+      RATE_CONSTANT 1.d-16 mol/m^2-sec
+      /
+    Magnetite
+      RATE_CONSTANT 1.d-16 mol/m^2-sec
+      /
+    Pyrrhotite
+      RATE_CONSTANT 1.d-16 mol/m^2-sec
+      /
+    Sulfur
+      RATE_CONSTANT 1.d-16 mol/m^2-sec
+      /
+    Wustite
+      RATE_CONSTANT 1.d-16 mol/m^2-sec
+      /
     Calcite
       RATE_CONSTANT 1.d-18
       /
@@ -383,57 +421,56 @@ noskip
   OUTPUT
 #    PH
     TOTAL
-skip
     ALL
     SECONDARY_SPECIES
     MINERALS
-noskip
-#      H+
+skip
+    OH-
+    S--
+    H2S(aq)
+    HS-
+      H+
       NH4+
-#      NH3(aq)
+      NH3(aq)
       OH-
       NO3-
       O2(aq)
       CO2(aq)
-
-#      CH4(aq)
-#      H2S(aq)
+      CH4(aq)
+      H2S(aq)
       SO4--
-#      CO3--
-#      HS-
-#      S--
+      CO3--
+      HS-
+      S--
       Fe+++
-skip
       Fe++
       Ca++
       FeNO3++
-#     FeOH++ #flatliner
+     FeOH++ #flatliner
       FeSO4+
-#     FeCO3+ #flatliner
-#     Fe(OH)2+ #problem child
-#     Fe(OH)3(aq) #problem child
-#     Fe(OH)4- #problem child
+     FeCO3+ #flatliner
+     Fe(OH)2+ #problem child
+     Fe(OH)3(aq) #problem child
+     Fe(OH)4- #problem child
       FeCl++
       FeCl4-
-      MINERALS
-
       N2(aq)
       DOM1
       DOM2
       DOM3
       DOM4
       HCO3-
+    NH4SO4-
+    Urea(aq)
+    HSO4-
+    H2SO4(aq)
+    HNO3(aq)    
+      nitrifiers
+      denitrifiers
+      methanogens
+      MPB
+     SOM1
 noskip
-#    NH4SO4-
-#    Urea(aq)
-#    HSO4-
-#    H2SO4(aq)
-#    HNO3(aq)    
-#      nitrifiers
-#      denitrifiers
-#      methanogens
-#      MPB
-#     SOM1
   /
 END
 
@@ -445,7 +482,7 @@ CONSTRAINT initial
     NO3-        4.5d-10    T
     O2(aq)      1.06d-4    T #G  O2(g)
     N2(aq)      4.65d-15   G  N2(g)*
-    H+          8.d0       P
+    H+          4.d0       P
     DOM1        1.d-15     T
     DOM2        1.d-15     T
     DOM3        1.d-15     T
@@ -455,11 +492,11 @@ CONSTRAINT initial
     H2S(aq)     1.d-15     T
     Na+         4.69d-2    T
     Cl-         5.46d-2    T
-    Ca++        0.01d0     M Calcite
+    Ca++        0.01d0     T Calcite
     H2O         5.56d1     T
     HS-         1.d-15     T
     Fe++        1.d-15     T Pyrite
-    Fe+++       3.5d-5    T Fe(OH)3
+    Fe+++       3.5d-5     T Fe(OH)3
     /
   IMMOBILE     # [mol/m^3 bulk]
     nitrifiers    1.d-8
@@ -470,12 +507,22 @@ CONSTRAINT initial
     DOM4          1.d-15
     /
   MINERALS
-    SOM1      2.d-2   1. cm^2/cm^3
-    Calcite   0.d0    1. cm^2/cm^3
-    Pyrite    1.d-8   1. cm^2/cm^3
-    Troilite  1.d-10  1. cm^2/cm^3
-    Fe(OH)3   1.d-10  1. cm^2/cm^3
-    Halite   1.d-10  1. cm^2/cm^3
+    SOM1          2.d-2     1. cm^2/cm^3
+    Calcite       0.d0      1. cm^2/cm^3
+    Pyrite        1.d-8     1. cm^2/cm^3
+    Troilite      1.d-10    1. cm^2/cm^3
+    Fe(OH)3       1.d-10    1. cm^2/cm^3
+    Halite        1.d-10    1. cm^2/cm^3
+    Fe            1.75d-12  1. cm^2/cm^3
+    Fe(OH)2       1.75d-12  1. cm^2/cm^3
+    FeO           1.75d-12  1. cm^2/cm^3
+    Ferrihydrite  1.75d-12  1. cm^2/cm^3
+    Goethite      1.75d-12  1. cm^2/cm^3
+    Hematite      1.75d-12  1. cm^2/cm^3
+    Magnetite     1.75d-12  1. cm^2/cm^3
+    Pyrrhotite    1.75d-12  1. cm^2/cm^3
+    Sulfur        1.75d-12  1. cm^2/cm^3
+    Wustite       1.75d-12  1. cm^2/cm^3
 skip
     SOM2  1.d-40     1. cm^2/cm^3
     SOM3  1.d-40     1. cm^2/cm^3
@@ -540,8 +587,8 @@ END
 #=========================== times ============================================
 TIME
   FINAL_TIME 400.d0 d
-  INITIAL_TIMESTEP_SIZE 1.d0 h
-  MAXIMUM_TIMESTEP_SIZE 1.d0 d
+  INITIAL_TIMESTEP_SIZE 0.5d0 h
+  MAXIMUM_TIMESTEP_SIZE 5.d0 h
 END
 
 #=========================== regions ==========================================
