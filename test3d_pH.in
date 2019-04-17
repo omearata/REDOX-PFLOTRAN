@@ -1,9 +1,16 @@
+
 #Description: Redox ladder (incubation)
 # Rate constants estimated to show different processes
 
 SIMULATION
   SIMULATION_TYPE SUBSURFACE
   PROCESS_MODELS
+    SUBSURFACE_FLOW flow
+      MODE GENERAL
+      OPTIONS
+        ARITHMETIC_GAS_DIFFUSIVE_DENSITY
+      /
+    /
     SUBSURFACE_TRANSPORT transport
       GLOBAL_IMPLICIT
       NUMERICAL_JACOBIAN
@@ -14,11 +21,12 @@ END
 SUBSURFACE
 
 #=========================== useful transport parameters =======================
+skip
 SPECIFIED_VELOCITY
   UNIFORM? YES
   DATASET 0.d0 0.d0 0.d0
 END
-
+noskip
 REFERENCE_LIQUID_DENSITY 1.d3
 
 
@@ -49,14 +57,14 @@ CHEMISTRY
     NH3(aq)
     OH-
     CO3--
-    NH4SO4-
+#    NH4SO4-
     Urea(aq)
     HSO4-
-    H2SO4(aq)
+#    H2SO4(aq)
     HNO3(aq)    
-    NaNO3(aq)
+#    NaNO3(aq)
     NaCl(aq)
-    NaSO4-
+#    NaSO4-
     NaCO3-
     NaHCO3(aq)
     HCl(aq)
@@ -71,40 +79,40 @@ CHEMISTRY
     S--
 
 #Fe++
-    FeOH+
-    FeSO4(aq)
-    FeHCO3+
-    Fe(OH)2(aq)
-    Fe(OH)3-
-    Fe(OH)4--
-    FeCO3(aq)
+#    FeOH+
+#    FeSO4(aq)
+#    FeHCO3+
+#    Fe(OH)2(aq)
+#    Fe(OH)3-
+#    Fe(OH)4--
+#    FeCO3(aq)
     FeCH3COO+
     FeCl+  
     FeCl4--  
     FeCl2(aq)
 
 #Fe+++
-    FeNO3++
+#    FeNO3++
     FeSO4+
     FeCO3+ #flatlines [Fe+++]  
-    FeOH++ #flatlines [Fe+++]    
-    Fe(OH)2+ #causes exponential increase in [Fe+++]
-    Fe(OH)3(aq) #causes exponential increase in [Fe+++]
+#    FeOH++ #flatlines [Fe+++]    
+#    Fe(OH)2+ #causes exponential increase in [Fe+++]
+#    Fe(OH)3(aq) #causes exponential increase in [Fe+++]
     Fe(OH)4- #causes exponential increase in [Fe+++]
     FeCl++
-    FeCl4-
-
+#    FeCl4-
   /
+
   DECOUPLED_EQUILIBRIUM_REACTIONS
     NO3-
     N2(aq)
     CH4(aq)
     H2S(aq)
     HS-
-
   /
+
   MINERALS
-    SOM1
+   SOM1
     Calcite
     Pyrite
     Troilite
@@ -113,15 +121,15 @@ CHEMISTRY
     Fe
     Fe(OH)2
     FeO
-    Ferrihydrite
-    Goethite
+#    Ferrihydrite
+#    Goethite
     Hematite
     Magnetite
     Pyrrhotite
     Sulfur
     Wustite
-
   /
+  
   IMMOBILE_SPECIES
     SOM2
     nitrifiers
@@ -130,12 +138,14 @@ CHEMISTRY
     methanogens
     DOM4
   /
+
   GAS_SPECIES
     CO2(g)
     O2(g)
     N2(g)*
     NH3(g)
   /
+
   MINERAL_KINETICS
     Fe
       RATE_CONSTANT 1.d-26 mol/m^2-sec
@@ -146,12 +156,14 @@ CHEMISTRY
     FeO
       RATE_CONSTANT 1.d-16 mol/m^2-sec
       /
+skip
     Ferrihydrite
       RATE_CONSTANT 1.d-16 mol/m^2-sec
       /
     Goethite
       RATE_CONSTANT 1.d-16 mol/m^2-sec
       /
+noskip
     Hematite
       RATE_CONSTANT 1.d-16 mol/m^2-sec
       /
@@ -182,7 +194,6 @@ CHEMISTRY
     Halite
       RATE_CONSTANT 1.d-18
       /
-
     SOM1
       PREFACTOR
         RATE_CONSTANT 2.d-16 mol/cm^2-sec
@@ -203,7 +214,6 @@ CHEMISTRY
     BACKWARD_RATE 0.d0
   /
 
-skip
 #NITRIFICATION
   MICROBIAL_REACTION
     REACTION 4.d0 NH4+ + O2(aq) + 6.0 HCO3- -> 4.d0 NO3- + DOM1 + 2.d0 H2O + 6.d0 H+
@@ -331,7 +341,7 @@ skip
       YIELD 0.01d0
     /
   /
-
+skip
 #Sulfate oxidation
   MICROBIAL_REACTION 
     REACTION CH4(aq) + SO4-- -> HCO3- + H2O + HS- 
@@ -359,7 +369,7 @@ skip
       YIELD 0.01d0
     /
   /
-
+noskip
 #Methanogenesis DOM2
   MICROBIAL_REACTION 
     REACTION 2.d0 HCO3- + DOM2 + 88.d0 H+ -> 14.d0 CH4(aq) + 16.d0 H2O + DOM3
@@ -415,22 +425,26 @@ skip
       YIELD 0.01d0
     /
   /
-noskip
+
  # LOG_FORMULATION
   DATABASE ./test3d.dat
 
   OUTPUT
-#    PH
+skip
+    PH
     TOTAL
-    FREE_ION
-#    SECONDARY_SPECIES
-#    MINERALS
+    ALL
+    SECONDARY_SPECIES
+    MINERALS
       H+
       NH4+
       NH3(aq)
       OH-
       NO3-
+noskip
+      TOTAL
       O2(aq)
+skip
       CO2(aq)
       CH4(aq)
       H2S(aq)
@@ -441,16 +455,13 @@ noskip
       Fe+++
       Fe++
       Ca++
-#    LIQUID_PRESSURE
-#    LIQUID_SATURATION
-skip
       FeNO3++
-     FeOH++ #flatliner
+      FeOH++ #flatliner
       FeSO4+
-     FeCO3+ #flatliner
-     Fe(OH)2+ #problem child
-     Fe(OH)3(aq) #problem child
-     Fe(OH)4- #problem child
+      FeCO3+ #flatliner
+      Fe(OH)2+ #problem child
+      Fe(OH)3(aq) #problem child
+      Fe(OH)4- #problem child
       FeCl++
       FeCl4-
       N2(aq)
@@ -459,16 +470,16 @@ skip
       DOM3
       DOM4
       HCO3-
-    NH4SO4-
-    Urea(aq)
-    HSO4-
-    H2SO4(aq)
-    HNO3(aq)    
+      NH4SO4-
+      Urea(aq)
+      HSO4-
+      H2SO4(aq)
+      HNO3(aq)    
       nitrifiers
       denitrifiers
       methanogens
       MPB
-     SOM1
+      SOM1
 noskip
   /
 END
@@ -514,8 +525,8 @@ CONSTRAINT initial
     Fe            1.75d-12  1. cm^2/cm^3
     Fe(OH)2       1.75d-12  1. cm^2/cm^3
     FeO           1.75d-12  1. cm^2/cm^3
-    Ferrihydrite  1.75d-12  1. cm^2/cm^3
-    Goethite      1.75d-12  1. cm^2/cm^3
+#    Ferrihydrite  1.75d-12  1. cm^2/cm^3
+#    Goethite      1.75d-12  1. cm^2/cm^3
     Hematite      1.75d-12  1. cm^2/cm^3
     Magnetite     1.75d-12  1. cm^2/cm^3
     Pyrrhotite    1.75d-12  1. cm^2/cm^3
@@ -547,6 +558,8 @@ CONSTRAINT inflow
     Fe+++       3.5d-5     T 
   /
 END
+
+
 
 #=========================== solver options ===================================
 LINEAR_SOLVER TRANSPORT
@@ -586,12 +599,12 @@ END
 #=========================== fluid properties =================================
 FLUID_PROPERTY
   PHASE LIQUID
-  DIFFUSION_COEFFICIENT 1.d-5
+  DIFFUSION_COEFFICIENT 1.d-9
 END
 
 FLUID_PROPERTY
   PHASE gas
-  DIFFUSION_COEFFICIENT 1.d-6
+  DIFFUSION_COEFFICIENT 1.000d-05
 END
 
 #=========================== material properties ==============================
@@ -616,29 +629,25 @@ MATERIAL_PROPERTY soil1
     PERM_Y 6.5870260083342112E-013
     PERM_Z 6.5870260083342112E-013
   /
-END
-
-# == saturation / permeability functions ======================================
-skip
-SATURATION_FUNCTION HD
-SATURATION_FUNCTION_TYPE VAN_GENUCHTEN
-RESIDUAL_SATURATION 0.115
-LAMBDA 0.286
-ALPHA 1.9401d-4
 /
-noskip
-
+#=========================== characteristic curves ============================
 CHARACTERISTIC_CURVES sf01
-  SATURATION_FUNCTION BROOKS_COREY    
-    !SMOOTH                             ! this option may have issue - NaN or Inf PC (TODO - checking)
-    LIQUID_RESIDUAL_SATURATION 0.10d0
-    MAX_CAPILLARY_PRESSURE 1.d8
-    ALPHA 2.93d-04
-    LAMBDA 0.2120d0
+  SATURATION_FUNCTION VAN_GENUCHTEN
+    LIQUID_RESIDUAL_SATURATION 0.d0
+    ALPHA 1.d-4
+    M 0.5d0
+    MAX_CAPILLARY_PRESSURE 1.d6
   /
-  PERMEABILITY_FUNCTION BURDINE_BC_LIQ
-    LIQUID_RESIDUAL_SATURATION 0.10d0
-    LAMBDA 0.2120d0
+  PERMEABILITY_FUNCTION MUALEM
+    PHASE LIQUID
+    LIQUID_RESIDUAL_SATURATION 0.d0
+    M 0.5d0
+  /
+  PERMEABILITY_FUNCTION MUALEM_VG_GAS
+    PHASE GAS
+    LIQUID_RESIDUAL_SATURATION 0.d0
+    GAS_RESIDUAL_SATURATION 1.d-40
+    M 0.5d0
   /
 END
 
@@ -648,15 +657,15 @@ OUTPUT
   TIMES y 0. 5. 10. 25. 50.
   FORMAT TECPLOT POINT
   FLUXES
-  LIQUID_PRESSURE
-  LIQUID_SATURATION
+#  LIQUID_PRESSURE
+#  LIQUID_SATURATION
 END
 
 #=========================== times ============================================
 TIME
   FINAL_TIME 400.d0 d
-  INITIAL_TIMESTEP_SIZE 0.5d0 h
-  MAXIMUM_TIMESTEP_SIZE 5.d0 h
+  INITIAL_TIMESTEP_SIZE 1.d0 h
+  MAXIMUM_TIMESTEP_SIZE 1.d0 d
 END
 
 #=========================== regions ==========================================
@@ -704,6 +713,7 @@ REGION horizon03
     0.d0 1.d0 41.103197276d0
   /
 END
+
 #=========================== observation points ===============================
 OBSERVATION
   REGION horizon01
@@ -734,16 +744,87 @@ END
 
 BOUNDARY_CONDITION sed_water_interface
   TRANSPORT_CONDITION tide_precip_mix
+  FLOW_CONDITION inflow
   REGION top
 END
 
+#=========================== transport conditions =============================
+
+FLOW_CONDITION soil1
+  TYPE
+    LIQUID_PRESSURE dirichlet
+    MOLE_FRACTION dirichlet
+    TEMPERATURE dirichlet
+  /
+  LIQUID_PRESSURE 200159.412d0
+  MOLE_FRACTION 1.d-10
+  TEMPERATURE 25.d0
+/
+
+FLOW_CONDITION inflow
+  TYPE
+    LIQUID_PRESSURE dirichlet
+    MOLE_FRACTION dirichlet
+    TEMPERATURE dirichlet
+  /
+  LIQUID_PRESSURE 200159.412d0
+  MOLE_FRACTION 1.d-10
+  TEMPERATURE 25.d0
+/
+skip
+FLOW_CONDITION outflow
+  TYPE
+    LIQUID_PRESSURE dirichlet
+    MOLE_FRACTION dirichlet
+    TEMPERATURE dirichlet
+  /
+  LIQUID_PRESSURE 200159.412d0
+  MOLE_FRACTION 1.d-10
+  TEMPERATURE 25.d0
+/
+
+FLOW_CONDITION surface
+  TYPE
+    RATE SCALED_MASS_RATE VOLUME
+  /
+  RATE LIST
+    TIME_UNITS y
+    DATA_UNITS kg/s kg/s MW
+              ! 10 kg/yr
+    0.d0 0.d0 3.170979198d-7 0.d0
+    0.5d0 0.d0 0.d0 0.d0
+    /
+  /
+noskip
 #=========================== condition couplers ===============================
 # initial condition
 INITIAL_CONDITION
   TRANSPORT_CONDITION initial
+  FLOW_CONDITION soil1
   REGION all
 END
 
+skip
+BOUNDARY_CONDITION inflow
+  FLOW_CONDITION inflow
+  TRANSPORT_CONDITION inflow
+  REGION surface
+END
+
+
+BOUNDARY_CONDITION outflow
+  FLOW_CONDITION outflow
+  TRANSPORT_CONDITION initial
+  REGION inflow
+END
+
+SOURCE_SINK surface
+  FLOW_CONDITION surface
+  TRANSPORT_CONDITION initial
+  REGION surface
+
+END
+noskip
 #=========================== stratigraphy couplers ============================
 STRATA
   REGION horizon01
