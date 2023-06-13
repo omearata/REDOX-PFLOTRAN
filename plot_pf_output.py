@@ -1,6 +1,8 @@
 from pylab import *
 
-import pandas
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 def read_tecfile(filename):
     f=open(filename,'r')
@@ -10,7 +12,7 @@ def read_tecfile(filename):
 
     f.close()
 
-    # This converter stuff is necessary because pflotran doesn't produce the right text format when exponent is <= E-100
+#     This converter stuff is necessary because pflotran doesn't produce the right text format when exponent is <= E-100
     def convertfunc(strval):
         if '-' in strval and 'E' not in strval:
             return 0.0
@@ -21,11 +23,12 @@ def read_tecfile(filename):
     return pandas.read_table(filename,skiprows=1,names=header,header=None,delim_whitespace=True,index_col=0,converters=converters)
 
 if __name__=='__main__':
-    # data=read_tecfile('CLM-CN-obs-0.tec')*100**3
-    #
-    # figure(1);clf()
+     with open('tide-010.tec') as docfile:
+        data = docfile.read()
+    
+     plt.figure(1);clf()
     # subplot(211)
-    # plot(data['C'],'k--',label='CO2')
+     plt.plot(data['Free Ca++ [M]'],'Z[m]')
     # plot(data['SOM1'])
     # plot(data['SOM2'])
     # plot(data['SOM3'])
@@ -33,10 +36,10 @@ if __name__=='__main__':
     # plot(data['Lit1C'])
     # plot(data['Lit2C'])
     # plot(data['Lit3C'])
-    # title('C pools')
-    # legend()
-    # xlabel('Time (days)')
-    # ylabel('Concentration (mol cm$^{-3}$)')
+     title('C pools')
+     legend()
+     xlabel('Depth')
+     ylabel('Concentration')
     #
     #
     # subplot(212)
@@ -52,6 +55,6 @@ if __name__=='__main__':
     #
     # tight_layout()
 
-    read_tecfile('test3d-obs-0.tec').plot()
+    #read_tecfile('ttide-010.tec').plot()
 
-    show()
+    #show()

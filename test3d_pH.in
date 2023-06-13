@@ -1,4 +1,3 @@
-
 #Description: Redox ladder (incubation)
 # Rate constants estimated to show different processes
 
@@ -134,6 +133,8 @@ CHEMISTRY
     SOM2
     nitrifiers
     denitrifiers
+    FeReducers
+    SulfRed
     MPB
     methanogens
     DOM4
@@ -144,11 +145,12 @@ CHEMISTRY
     O2(g)
     N2(g)*
     NH3(g)
+    CH4(g)
   /
 
   MINERAL_KINETICS
     Fe
-      RATE_CONSTANT 1.d-26 mol/m^2-sec
+      RATE_CONSTANT 1.d-16 mol/m^2-sec
       /
     Fe(OH)2
       RATE_CONSTANT 1.d-16 mol/m^2-sec
@@ -156,14 +158,12 @@ CHEMISTRY
     FeO
       RATE_CONSTANT 1.d-16 mol/m^2-sec
       /
-skip
-    Ferrihydrite
-      RATE_CONSTANT 1.d-16 mol/m^2-sec
-      /
-    Goethite
-      RATE_CONSTANT 1.d-16 mol/m^2-sec
-      /
-noskip
+!    Ferrihydrite
+!      RATE_CONSTANT 1.d-16 mol/m^2-sec
+!      /
+!    Goethite
+!      RATE_CONSTANT 1.d-16 mol/m^2-sec
+!      /
     Hematite
       RATE_CONSTANT 1.d-16 mol/m^2-sec
       /
@@ -180,71 +180,94 @@ noskip
       RATE_CONSTANT 1.d-16 mol/m^2-sec
       /
     Calcite
-      RATE_CONSTANT 1.d-18
+      RATE_CONSTANT 1.d-16
       /
     Pyrite
-      RATE_CONSTANT 1.d-18
+      RATE_CONSTANT 1.d-16
       /
     Troilite
       RATE_CONSTANT 1.d-16
       /
     Fe(OH)3
-      RATE_CONSTANT 1.d-18
+      RATE_CONSTANT 1.d-16
       /
     Halite
-      RATE_CONSTANT 1.d-18
+      RATE_CONSTANT 1.d-16
       /
     SOM1
       PREFACTOR
-        RATE_CONSTANT 2.d-16 mol/cm^2-sec
-        ACTIVATION_ENERGY 51.7d0
+        RATE_CONSTANT 2.d-15 mol/cm^2-sec
+        ACTIVATION_ENERGY 41.7d0
         PREFACTOR_SPECIES O2(aq)
           ALPHA 0.5d-1
         /
        /   
       /
      /
+  
+    
+
   TRUNCATE_CONCENTRATION 1.d-15
 
 
 #DOM RESPIRATION
-  GENERAL_REACTION
-    REACTION DOM1 + O2(aq) + H2O -> DOM2 + HCO3- + H+ 
-    FORWARD_RATE 9.d-1
-    BACKWARD_RATE 0.d0
+ MICROBIAL_REACTION
+    REACTION DOM1 + 5.0 O2(aq) + H2O -> DOM2 + HCO3- + H+ + NH4+
+    RATE_CONSTANT 2.0d-2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME O2(aq)
+      HALF_SATURATION_CONSTANT 1.d0 #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME DOM1
+      HALF_SATURATION_CONSTANT 1.d0 #Gao et al 2010
+    /
+  /
+
+#DOM RESPIRATION
+ MICROBIAL_REACTION
+    REACTION DOM2 + 10.0 O2(aq) + H2O -> DOM3 + HCO3- + H+ + NH4+
+    RATE_CONSTANT 2.0d-2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME O2(aq)
+      HALF_SATURATION_CONSTANT 1.d0 #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME DOM2
+      HALF_SATURATION_CONSTANT 1.d0 #Gao et al 2010
+    /
   /
 
 #NITRIFICATION
   MICROBIAL_REACTION
     REACTION 4.d0 NH4+ + O2(aq) + 6.0 HCO3- -> 4.d0 NO3- + DOM1 + 2.d0 H2O + 6.d0 H+
-    RATE_CONSTANT 5.0d-4 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    RATE_CONSTANT 2.0d-2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
     MONOD
       SPECIES_NAME NH4+ 
-      HALF_SATURATION_CONSTANT 0.1d-3 #Gao et al 2010
+      HALF_SATURATION_CONSTANT 1.d-2 #Gao et al 2010
     /
-    INHIBITION
-      SPECIES_NAME HCO3-
-      TYPE INVERSE_MONOD
-      INHIBITION_CONSTANT 6.25d-10
+    MONOD
+      SPECIES_NAME HCO3- 
+      HALF_SATURATION_CONSTANT 1.d-2 #Gao et al 2010
     /
     INHIBITION
       SPECIES_NAME O2(aq)
       TYPE INVERSE_MONOD
-      INHIBITION_CONSTANT 6.25d-8
+      INHIBITION_CONSTANT 6.25d-6
     /
   /
 
 #DENITRIFICATION DOM1
   MICROBIAL_REACTION 
     REACTION DOM1 + 4.d0 NO3- -> DOM2 + 6.d0 HCO3- + 2.d0 N2(aq) + 6.d0 H+
-    RATE_CONSTANT 5.56d1 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    RATE_CONSTANT 2.56d2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
     MONOD
       SPECIES_NAME NO3-
-      HALF_SATURATION_CONSTANT 6.3d-2  #Gao et al 2010
+      HALF_SATURATION_CONSTANT 10.3d-1  #Gao et al 2010
     /
     MONOD
       SPECIES_NAME DOM1
-      HALF_SATURATION_CONSTANT 5.d-2
+      HALF_SATURATION_CONSTANT 10.d0
     /
     INHIBITION
       SPECIES_NAME O2(aq)
@@ -260,14 +283,14 @@ noskip
 #DENITRIFICATION DOM2
   MICROBIAL_REACTION 
     REACTION DOM2 + 8.d0 NO3- -> DOM3 + 8.d0 HCO3- + 4.d0 N2(aq) + 12.d0 H+
-    RATE_CONSTANT 5.56d0 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    RATE_CONSTANT 1.56d1 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
     MONOD
       SPECIES_NAME NO3-
-      HALF_SATURATION_CONSTANT 6.3d-2  #Gao et al 2010
+      HALF_SATURATION_CONSTANT 9.3d-1  #Gao et al 2010
     /
     MONOD
       SPECIES_NAME DOM2
-      HALF_SATURATION_CONSTANT 5.d-2
+      HALF_SATURATION_CONSTANT 9.d0
     /
     INHIBITION
       SPECIES_NAME O2(aq)
@@ -280,10 +303,85 @@ noskip
     /
   /
 
+#DENITRIFICATION DOM3
+  MICROBIAL_REACTION 
+    REACTION DOM3 + 8.d0 NO3- -> DOM4 + 8.d0 HCO3- + 4.d0 N2(aq) + 12.d0 H+
+    RATE_CONSTANT 2.56d0 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME NO3-
+      HALF_SATURATION_CONSTANT 5.3d1  #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME DOM3
+      HALF_SATURATION_CONSTANT 5.d1
+    /
+    INHIBITION
+      SPECIES_NAME O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-8   #using hypoxia as a requirement O2 must be < 2mg/L for DEN
+    /
+    BIOMASS
+      SPECIES_NAME denitrifiers
+      YIELD 0.01d0
+    /
+  /
+
+#Plant Root Uptake 
+  MICROBIAL_REACTION 
+    REACTION 4.d0 NO3- + 8.d0 NH4+ -> SOM2
+    RATE_CONSTANT 9.56d-2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME NO3-
+      HALF_SATURATION_CONSTANT 8.3d-4  #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME NH4+
+      HALF_SATURATION_CONSTANT 2.3d-4  #Gao et al 2010
+    /
+    BIOMASS
+      SPECIES_NAME MPB
+      YIELD 0.01d0
+    /
+    INHIBITION
+      SPECIES_NAME H2S(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-5  
+    /
+  /
+
+
+#IRON REDUCTION DOM1
+  MICROBIAL_REACTION 
+    REACTION DOM1 + 3.d0 Fe+++ + H2O -> DOM2 + 3.d0 Fe++ + 6.d0 HCO3- + 15.d0 H+ 
+    RATE_CONSTANT 2.d5 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME Fe+++
+      HALF_SATURATION_CONSTANT 1.3d6 #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME DOM1
+      HALF_SATURATION_CONSTANT 2.d6
+    /
+    INHIBITION
+      SPECIES_NAME O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-8  
+    /
+    INHIBITION
+      SPECIES_NAME NO3-
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.25d-5
+    /
+    BIOMASS
+      SPECIES_NAME FeReducers
+      YIELD 0.01d0
+    /
+  /
+
 #IRON REDUCTION DOM2
   MICROBIAL_REACTION 
     REACTION DOM2 + 3.d0 Fe+++ + H2O -> DOM3 + 3.d0 Fe++ + 6.d0 HCO3- + 15.d0 H+ 
-    RATE_CONSTANT 2.d-2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    RATE_CONSTANT 3.d1 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
     MONOD
       SPECIES_NAME Fe+++
       HALF_SATURATION_CONSTANT 1.3d-2  #Gao et al 2010
@@ -295,130 +393,157 @@ noskip
     INHIBITION
       SPECIES_NAME O2(aq)
       TYPE MONOD
-      INHIBITION_CONSTANT 6.25d-8   #using hypoxia as a requirement O2 must be < 2mg/L for DEN
+      INHIBITION_CONSTANT 6.25d-8   
     /
     INHIBITION
       SPECIES_NAME NO3-
       TYPE MONOD
-      INHIBITION_CONSTANT 1.25d-8
+      INHIBITION_CONSTANT 1.25d-5
     /
     BIOMASS
-      SPECIES_NAME denitrifiers
+      SPECIES_NAME FeReducers
       YIELD 0.01d0
     /
   /
 
-
-#Sulfate reduction
+#IRON REDUCTION DOM3
   MICROBIAL_REACTION 
-    REACTION DOM2 + 6.d0 SO4-- + 2.0 H2O -> 12.d0 HCO3- + DOM3 + 6.d0 H2S(aq) 
-    RATE_CONSTANT 2.56d2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    REACTION DOM3 + 3.d0 Fe+++ + H2O -> DOM4 + 3.d0 Fe++ + 6.d0 HCO3- + 15.d0 H+ 
+    RATE_CONSTANT 2.d0 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
     MONOD
-      SPECIES_NAME SO4--
-      HALF_SATURATION_CONSTANT 6.3d-2  #Gao et al 2010
+      SPECIES_NAME Fe+++
+      HALF_SATURATION_CONSTANT 1.3d-2  #Gao et al 2010
     /
     MONOD
-      SPECIES_NAME DOM2
-      HALF_SATURATION_CONSTANT 6.3d0  #Gao et al 2010
-    /
-    INHIBITION
-      SPECIES_NAME NO3-
-      TYPE MONOD
-      INHIBITION_CONSTANT 6.25d-8
+      SPECIES_NAME DOM3
+      HALF_SATURATION_CONSTANT 2.d-2
     /
     INHIBITION
       SPECIES_NAME O2(aq)
       TYPE MONOD
-      INHIBITION_CONSTANT 6.25d-5   #using hypoxia as a requirement O2 must be < 2mg/L for DEN
+      INHIBITION_CONSTANT 6.25d-8  
+    /
+    INHIBITION
+      SPECIES_NAME NO3-
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.25d-5
+    /
+    BIOMASS
+      SPECIES_NAME FeReducers
+      YIELD 0.01d0
+    /
+  /
+
+#Sulfate reduction DOM1
+  MICROBIAL_REACTION 
+    REACTION DOM1 + 6.d0 SO4-- + 2.0 H2O -> 12.d0 HCO3- + DOM2 + 6.d0 H2S(aq) 
+    RATE_CONSTANT 1.56d2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    MONOD
+      SPECIES_NAME SO4--
+      HALF_SATURATION_CONSTANT 6.3d0  #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME DOM1
+      HALF_SATURATION_CONSTANT 4.3d0  #Gao et al 2010
+    /
+    INHIBITION
+      SPECIES_NAME NO3-
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.d-6
+    /
+    INHIBITION
+      SPECIES_NAME O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.d-9   
     /
     INHIBITION
       SPECIES_NAME Fe+++
       TYPE MONOD
-      INHIBITION_CONSTANT 6.25d-5
+      INHIBITION_CONSTANT 6.25d-9
     /
     BIOMASS
-      SPECIES_NAME methanogens
+      SPECIES_NAME SulfRed
       YIELD 0.01d0
     /
   /
-skip
-#Sulfate oxidation
+
+#Sulfate reduction DOM2
   MICROBIAL_REACTION 
-    REACTION CH4(aq) + SO4-- -> HCO3- + H2O + HS- 
-    RATE_CONSTANT 9.56d2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    REACTION DOM2 + 6.d0 SO4-- + 2.0 H2O -> 12.d0 HCO3- + DOM3 + 6.d0 H2S(aq) 
+    RATE_CONSTANT 1.56d1 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
     MONOD
       SPECIES_NAME SO4--
-      HALF_SATURATION_CONSTANT 6.3d-2  #Gao et al 2010
+      HALF_SATURATION_CONSTANT 1.3d0  #Gao et al 2010
     /
     MONOD
-      SPECIES_NAME CH4(aq)
-      HALF_SATURATION_CONSTANT 6.3d0  #Gao et al 2010
+      SPECIES_NAME DOM2
+      HALF_SATURATION_CONSTANT 1.3d0  #Gao et al 2010
     /
     INHIBITION
       SPECIES_NAME NO3-
       TYPE MONOD
-      INHIBITION_CONSTANT 6.25d-5
+      INHIBITION_CONSTANT 3d-6
     /
     INHIBITION
       SPECIES_NAME O2(aq)
       TYPE MONOD
-      INHIBITION_CONSTANT 6.25d-5   #using hypoxia as a requirement O2 must be < 2mg/L for DEN
+      INHIBITION_CONSTANT 1d-9  
+    /
+    INHIBITION
+      SPECIES_NAME Fe+++
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-9
     /
     BIOMASS
-      SPECIES_NAME methanogens
+      SPECIES_NAME SulfRed
       YIELD 0.01d0
     /
   /
-noskip
-#Methanogenesis DOM2
+
+#Sulfate reduction DOM3
   MICROBIAL_REACTION 
-    REACTION 2.d0 HCO3- + DOM2 + 88.d0 H+ -> 14.d0 CH4(aq) + 16.d0 H2O + DOM3
-    RATE_CONSTANT 10.56d3 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
+    REACTION DOM3 + 6.d0 SO4-- + 2.0 H2O -> 12.d0 HCO3- + DOM4 + 6.d0 H2S(aq) 
+    RATE_CONSTANT 1.56d0 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
     MONOD
-      SPECIES_NAME DOM2
+      SPECIES_NAME SO4--
       HALF_SATURATION_CONSTANT 6.3d0  #Gao et al 2010
     /
-    MONOD
-      SPECIES_NAME HCO3-
-      HALF_SATURATION_CONSTANT 6.3d5  #Gao et al 2010
-    /
-    INHIBITION
-      SPECIES_NAME SO4--
-      TYPE MONOD
-      INHIBITION_CONSTANT 6.25d-8
-    /
-    INHIBITION
-      SPECIES_NAME NO3-
-      TYPE MONOD
-      INHIBITION_CONSTANT 6.25d-8   #using hypoxia as a requirement O2 must be < 2mg/L for DEN
-    /
-    BIOMASS
-      SPECIES_NAME methanogens
-      YIELD 0.01d0
-    /
-  /
-  
-#Methanogenesis DOM3
-  MICROBIAL_REACTION 
-    REACTION 2.d0 HCO3- + DOM3 + 66.d0 H+ -> 12.d0 CH4(aq) + 9.d0 H2O + DOM4
-    RATE_CONSTANT 10.56d2 #Thompson et al 1995 mol-m3 bulk/(L water-mol biomass-sec)
     MONOD
       SPECIES_NAME DOM3
       HALF_SATURATION_CONSTANT 6.3d0  #Gao et al 2010
     /
-    MONOD
-      SPECIES_NAME HCO3-
-      HALF_SATURATION_CONSTANT 6.3d0  #Gao et al 2010
-    /
-    INHIBITION
-      SPECIES_NAME SO4--
-      TYPE MONOD
-      INHIBITION_CONSTANT 6.25d-8
-    /
     INHIBITION
       SPECIES_NAME NO3-
       TYPE MONOD
-      INHIBITION_CONSTANT 6.25d-8   #using hypoxia as a requirement O2 must be < 2mg/L for DEN
+      INHIBITION_CONSTANT 3d-6
+    /
+    INHIBITION
+      SPECIES_NAME O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 1d-9 
+    /
+    INHIBITION
+      SPECIES_NAME Fe+++
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-8
+    /
+    BIOMASS
+      SPECIES_NAME SulfRed
+      YIELD 0.01d0
+    /
+  /
+
+#Methane oxidation
+  MICROBIAL_REACTION 
+    REACTION CH4(aq) + SO4-- -> HCO3- + H2O + HS- 
+    RATE_CONSTANT 9.56d8 
+    MONOD
+      SPECIES_NAME SO4--
+      HALF_SATURATION_CONSTANT 6.3d-1  #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME CH4(aq)
+      HALF_SATURATION_CONSTANT 6.3d-1  #Gao et al 2010
     /
     BIOMASS
       SPECIES_NAME methanogens
@@ -426,7 +551,139 @@ noskip
     /
   /
 
- # LOG_FORMULATION
+#Methane oxidation
+  MICROBIAL_REACTION 
+    REACTION CH4(aq) + 2.d0 O2(aq) -> HCO3- + H2O + H+
+    RATE_CONSTANT 9.56d6 
+    MONOD
+      SPECIES_NAME O2(aq)
+      HALF_SATURATION_CONSTANT 6.3d-1  #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME CH4(aq)
+      HALF_SATURATION_CONSTANT 6.3d-1  #Gao et al 2010
+    /
+    BIOMASS
+      SPECIES_NAME methanogens
+      YIELD 0.01d0
+    /
+  /
+
+#Methanogenesis DOM1
+  MICROBIAL_REACTION 
+    REACTION 10.d0 HCO3- + DOM1 + 88.d0 H+ -> 14.d0 CH4(aq) + 16.d0 H2O + DOM2
+    RATE_CONSTANT 1.56d2 
+    MONOD
+      SPECIES_NAME DOM1
+      HALF_SATURATION_CONSTANT 6.3d-1  #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME HCO3-
+      HALF_SATURATION_CONSTANT 6.3d4  #Gao et al 2010
+    /
+    INHIBITION
+      SPECIES_NAME SO4--
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.d-5
+    /
+    INHIBITION
+      SPECIES_NAME NO3-
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.d-6   
+    /
+    INHIBITION
+      SPECIES_NAME Fe+++
+      TYPE MONOD
+      INHIBITION_CONSTANT 4d-10
+    /
+    INHIBITION
+      SPECIES_NAME O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 4d-10   
+    /
+    BIOMASS
+      SPECIES_NAME methanogens
+      YIELD 0.01d0
+    /
+  /
+
+#Methanogenesis DOM2
+  MICROBIAL_REACTION 
+    REACTION 10.d0 HCO3- + DOM2 + 88.d0 H+ -> 14.d0 CH4(aq) + 16.d0 H2O + DOM3
+    RATE_CONSTANT 1.56d1 
+    MONOD
+      SPECIES_NAME DOM2
+      HALF_SATURATION_CONSTANT 6.3d-1 #Gao et al 2010
+    /
+    MONOD
+      SPECIES_NAME HCO3-
+      HALF_SATURATION_CONSTANT 6.3d4  #Gao et al 2010
+    /
+    INHIBITION
+      SPECIES_NAME SO4--
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.25d-5
+    /
+    INHIBITION
+      SPECIES_NAME NO3-
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.25d-6   
+    /
+    INHIBITION
+      SPECIES_NAME Fe+++
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-10
+    /
+    INHIBITION
+      SPECIES_NAME O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-10  
+    /
+    BIOMASS
+      SPECIES_NAME methanogens
+      YIELD 0.01d0
+    /
+  /
+
+#Methanogenesis DOM3
+  MICROBIAL_REACTION 
+    REACTION 10.d0 HCO3- + DOM3 + 66.d0 H+ -> 12.d0 CH4(aq) + 9.d0 H2O + DOM4
+    RATE_CONSTANT 1.56d0 
+    MONOD
+      SPECIES_NAME DOM3
+      HALF_SATURATION_CONSTANT 6.3d-1  
+    /
+    MONOD
+      SPECIES_NAME HCO3-
+      HALF_SATURATION_CONSTANT 6.3d4 
+    /
+    INHIBITION
+      SPECIES_NAME SO4--
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.25d-5
+    /
+    INHIBITION
+      SPECIES_NAME NO3-
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.25d-6   
+    /
+    INHIBITION
+      SPECIES_NAME Fe+++
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-10
+    /
+    INHIBITION
+      SPECIES_NAME O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 6.25d-10   
+    /
+    BIOMASS
+      SPECIES_NAME methanogens
+      YIELD 0.01d0
+    /
+  /
+
+  LOG_FORMULATION
   DATABASE ./test3d.dat
 
   OUTPUT
@@ -436,18 +693,28 @@ skip
     ALL
     SECONDARY_SPECIES
     MINERALS
+noskip
+      FREE_ION
       H+
       NH4+
       NH3(aq)
       OH-
       NO3-
-noskip
-      TOTAL
       O2(aq)
-skip
       CO2(aq)
       CH4(aq)
       H2S(aq)
+      Fe+++
+      Fe++
+      HCO3-
+      SO4--
+      DOM1
+      DOM2
+      DOM3
+      DOM4
+      SOM1
+      PH
+skip
       SO4--
       CO3--
       HS-
@@ -465,11 +732,6 @@ skip
       FeCl++
       FeCl4-
       N2(aq)
-      DOM1
-      DOM2
-      DOM3
-      DOM4
-      HCO3-
       NH4SO4-
       Urea(aq)
       HSO4-
@@ -487,25 +749,25 @@ END
 #=========================== transport constraints ============================
 CONSTRAINT initial
   CONCENTRATIONS
-    NH4+        3.d-5      T
-    NO3-        4.5d-10    T
-    O2(aq)      2.06d-4    T  
-    N2(aq)      4.65d-15   T 
-    H+          4.d0       P
-    DOM1        1.d-15     T
-    DOM2        1.d-15     T
-    DOM3        1.d-15     T
+    NH4+        3.d-8      T
+    NO3-        4.5d-7     T
+    O2(aq)      2.06d-5    T  
+    N2(aq)      4.65d-10   T 
+    H+          7.5d0      P
+    DOM1        1.d-6      T
+    DOM2        1.d-6      T
+    DOM3        1.d-6      T
     HCO3-       6.6d-4     T 
-    CH4(aq)     1.d-15     T
-    SO4--       2.8e-5     T
-    H2S(aq)     1.d-15     T
+    CH4(aq)     5.d-8      T
+    SO4--       2.8e-4     T
+    H2S(aq)     7.4d-7     T
     Na+         4.69d-2    T
     Cl-         5.46d-2    T
-    Ca++        0.01d0     T 
+    Ca++        0.02d0     T 
     H2O         5.56d1     T
     HS-         1.d-15     T
-    Fe++        1.d-15     T 
-    Fe+++       3.5d-5     T 
+    Fe++        1.d-9     T 
+    Fe+++       1.5d-5   T 
     /
   IMMOBILE     # [mol/m^3 bulk]
     nitrifiers    1.d-8
@@ -514,61 +776,90 @@ CONSTRAINT initial
     methanogens   1.d-8
     SOM2          1.d-15
     DOM4          1.d-15
+    FeReducers    1.d-15
+    SulfRed       1.d-15
     /
   MINERALS
     SOM1          2.d-2     1. cm^2/cm^3
     Calcite       0.d0      1. cm^2/cm^3
-    Pyrite        1.d-8     1. cm^2/cm^3
-    Troilite      1.d-10    1. cm^2/cm^3
-    Fe(OH)3       1.d-10    1. cm^2/cm^3
+    Pyrite        1.d-15     1. cm^2/cm^3
+    Troilite      1.d-15    1. cm^2/cm^3
+    Fe(OH)3       1.d-15    1. cm^2/cm^3
     Halite        1.d-10    1. cm^2/cm^3
-    Fe            1.75d-12  1. cm^2/cm^3
-    Fe(OH)2       1.75d-12  1. cm^2/cm^3
-    FeO           1.75d-12  1. cm^2/cm^3
-#    Ferrihydrite  1.75d-12  1. cm^2/cm^3
-#    Goethite      1.75d-12  1. cm^2/cm^3
-    Hematite      1.75d-12  1. cm^2/cm^3
-    Magnetite     1.75d-12  1. cm^2/cm^3
-    Pyrrhotite    1.75d-12  1. cm^2/cm^3
-    Sulfur        1.75d-12  1. cm^2/cm^3
-    Wustite       1.75d-12  1. cm^2/cm^3
+    Fe            1.75d-15  1. cm^2/cm^3
+    Fe(OH)2       1.75d-15  1. cm^2/cm^3
+    FeO           1.75d-15  1. cm^2/cm^3
+!    Ferrihydrite  1.75d-15  1. cm^2/cm^3
+!    Goethite      1.75d-15  1. cm^2/cm^3
+    Hematite      1.75d-15  1. cm^2/cm^3
+    Magnetite     1.75d-15  1. cm^2/cm^3
+    Pyrrhotite    1.75d-15  1. cm^2/cm^3
+    Sulfur        1.75d-15  1. cm^2/cm^3
+    Wustite       1.75d-15  1. cm^2/cm^3
     /
 END
 
 CONSTRAINT inflow
   CONCENTRATIONS
-    NH4+        3.d-5      G NH3(g)
-    NO3-        4.5d-10    T
-    O2(aq)      2.06d-4    G O2(g)  
-    N2(aq)      4.65d-15   G N2(g)* 
-    H+          4.d0       P
-    DOM1        1.d-15     T
-    DOM2        1.d-15     T
-    DOM3        1.d-15     T
+    NH4+        1.d-5     G NH3(g)
+    NO3-        6.9d-6     T
+    O2(aq)      2.43d-3    G O2(g)  
+    N2(aq)      4.57d-4    G N2(g)* 
+    H+          8.0d0      P
+    DOM1        1.d-2      T !0
+    DOM2        1.5d-2     T !0
+    DOM3        4.d-2      T !0
     HCO3-       6.6d-4     G CO2(g) 
-    CH4(aq)     1.d-15     T
-    SO4--       2.8e-5     T
-    H2S(aq)     1.d-15     T
+    CH4(aq)     1.d-8      G CH4(g)
+    SO4--       5.8e-4     T
+    H2S(aq)     7.4d-7     T
     Na+         4.69d-2    T
     Cl-         5.46d-2    T
-    Ca++        0.01d0     T 
+    Ca++        0.02d0     T 
     H2O         5.56d1     T
     HS-         1.d-15     T
-    Fe++        1.d-15     T 
-    Fe+++       3.5d-5     T 
+    Fe++        1.d-9     T 
+    Fe+++       1.5d-5    T 
   /
 END
 
-
+CONSTRAINT evap
+  CONCENTRATIONS
+    NH4+        1.d-5      G NH3(g)
+    NO3-        1.d-20     T
+    O2(aq)      2.43d-3    G O2(g)  
+    N2(aq)      4.57d-4    G N2(g)* 
+    H+          7.5d0      P
+    DOM1        1.d-20      T !0
+    DOM2        1.5d-20     T !0
+    DOM3        4.d-20      T !0
+    HCO3-       6.6d-4     G CO2(g) 
+    CH4(aq)     1.d-8      G CH4(g)
+    SO4--       5.8e-20     T
+    H2S(aq)     7.4d-20     T
+    Na+         4.69d-20    T
+    Cl-         5.46d-20    T
+    Ca++        0.02d-20     T 
+    H2O         5.56d1     T
+    HS-         1.d-20     T
+    Fe++        1.d-20     T 
+    Fe+++       1.5d-20    T
+  /
+END
 
 #=========================== solver options ===================================
 LINEAR_SOLVER TRANSPORT
-  SOLVER DIRECT
+  !SOLVER DIRECT
+  SOLVER ITERATIVE     ! default: ITERATIVE or KRYLOV: KSP_TYPE of BCGS and PC_TYPE of BJACOBI, if not modified below
+  PC_TYPE JACOBI       ! default (iterative): BJACOBI. 
+  KSP_TYPE fgmres      ! default: BCGS. NOT much difference 
 END
 
 NEWTON_SOLVER TRANSPORT
-  ATOL 1.d-50
-#  RTOL 1.d-12
+  ATOL 1.d-20
+  RTOL 1.d-15
+  STOL 1.d-10
+  ITOL 1.d-10
 END
 
 #=========================== discretization ===================================
@@ -591,20 +882,23 @@ GRID
      0.12360036510228053d0 \
      7.4967410986208557d-002 \
      4.5470033242413201d-002 \
-     2.7578969259676251d-002 \
-     1.7512817916255204d-002
+     3.7591787718d-002 \
+!     2.7578969259676251d-002 \
+!     1.0012817916255204d-002 \
+     7.5000000000000000d-003 
+!     2.5000000000000000d-003 
   /
 END
 
 #=========================== fluid properties =================================
 FLUID_PROPERTY
   PHASE LIQUID
-  DIFFUSION_COEFFICIENT 1.d-9
+  DIFFUSION_COEFFICIENT 1.d-4
 END
 
 FLUID_PROPERTY
   PHASE gas
-  DIFFUSION_COEFFICIENT 1.000d-05
+  DIFFUSION_COEFFICIENT 5.000d-06
 END
 
 #=========================== material properties ==============================
@@ -653,19 +947,29 @@ END
 
 #=========================== output options ===================================
 OUTPUT
+  VARIABLES
+    LIQUID_PRESSURE
+    LIQUID_SATURATION
+  /
+    FORMAT TECPLOT POINT
+    PERIODIC TIME 3600 s
+  /
+
+skip
+OUTPUT
   PERIODIC_OBSERVATION TIMESTEP 100
   TIMES y 0. 5. 10. 25. 50.
   FORMAT TECPLOT POINT
-  FLUXES
+#  FLUXES
 #  LIQUID_PRESSURE
 #  LIQUID_SATURATION
 END
-
+noskip
 #=========================== times ============================================
 TIME
-  FINAL_TIME 400.d0 d
-  INITIAL_TIMESTEP_SIZE 1.d0 h
-  MAXIMUM_TIMESTEP_SIZE 1.d0 d
+  FINAL_TIME 2.d0 d
+  INITIAL_TIMESTEP_SIZE 0.5d0 h
+  MAXIMUM_TIMESTEP_SIZE 12.d0 h
 END
 
 #=========================== regions ==========================================
@@ -735,6 +1039,21 @@ TRANSPORT_CONDITION initial
   /
 END
 
+TRANSPORT_CONDITION inflow
+  TYPE dirichlet
+  CONSTRAINT_LIST
+   0.d0 inflow
+  /
+END
+
+TRANSPORT_CONDITION evap
+  TYPE dirichlet
+  CONSTRAINT_LIST
+    0.d0 evap
+  /
+END
+
+skip
 TRANSPORT_CONDITION tide_precip_mix
   TYPE dirichlet
   CONSTRAINT_LIST
@@ -747,7 +1066,7 @@ BOUNDARY_CONDITION sed_water_interface
   FLOW_CONDITION inflow
   REGION top
 END
-
+noskip
 #=========================== transport conditions =============================
 
 FLOW_CONDITION soil1
@@ -771,30 +1090,64 @@ FLOW_CONDITION inflow
   MOLE_FRACTION 1.d-10
   TEMPERATURE 25.d0
 /
+
 skip
-FLOW_CONDITION outflow
+FLOW_CONDITION inflow
+  TYPE
+    RATE mass_rate
+  /
+RATE LIST
+  TIME_UNITS hr
+  DATA_UNITS kg/s
+    24.	  0.d0	    0.d0	0.d0
+    25.	  -5.d-3	  0.d0	0.d0
+    26.	  -4.d-3	  0.d0	0.d0
+    27.	  -3.d-3	  0.d0	0.d0
+    28.	  -2.d-3	  0.d0	0.d0
+    29.	  -1.d-3	  0.d0	0.d0
+    30.	  0.d0	    0.d0	0.d0
+    31.	  5.d-3    0.d0	0.d0
+    32.	  4.d-3	    0.d0	0.d0
+    33.	  3.d-3	    0.d0	0.d0
+    34.	  2.d-3	    0.d0	0.d0
+    35.	  1.d-3	    0.d0	0.d0
+    36.	  0.d0	    0.d0	0.d0
+    37.	  -5.d-3	  0.d0	0.d0
+    38.	  -4.d-3	  0.d0	0.d0
+    39.	  -3.d-3	  0.d0	0.d0
+    40.	  -2.d-3	  0.d0	0.d0
+    41.	  -1.d-3	  0.d0	0.d0
+    42.	  0.d0	    0.d0	0.d0
+    43.	  5.d-3	    0.d0	0.d0
+    44.	  4.d-3	    0.d0	0.d0
+    45.	  3.d-3	    0.d0	0.d0
+    46.	  2.d-3	    0.d0	0.d0
+    47.	  1.d-3	    0.d0	0.d0
+    48.	  0.d0	    0.d0	0.d0
+  /
+ / 
+noskip
+
+FLOW_CONDITION evap
+  TYPE
+    RATE mass_rate
+  /
+     ! liquid gas   energy
+  RATE -1.d-7  0.d0 0.d0 kg/s kg/s MW
+/
+
+skip
+FLOW_CONDITION inflow
   TYPE
     LIQUID_PRESSURE dirichlet
     MOLE_FRACTION dirichlet
     TEMPERATURE dirichlet
+
   /
   LIQUID_PRESSURE 200159.412d0
   MOLE_FRACTION 1.d-10
   TEMPERATURE 25.d0
 /
-
-FLOW_CONDITION surface
-  TYPE
-    RATE SCALED_MASS_RATE VOLUME
-  /
-  RATE LIST
-    TIME_UNITS y
-    DATA_UNITS kg/s kg/s MW
-              ! 10 kg/yr
-    0.d0 0.d0 3.170979198d-7 0.d0
-    0.5d0 0.d0 0.d0 0.d0
-    /
-  /
 noskip
 #=========================== condition couplers ===============================
 # initial condition
@@ -804,14 +1157,28 @@ INITIAL_CONDITION
   REGION all
 END
 
+SOURCE_SINK evap
+  FLOW_CONDITION evap
+  TRANSPORT_CONDITION evap
+  REGION top
+END
+
 skip
+SOURCE_SINK inflow
+  FLOW_CONDITION inflow
+  TRANSPORT_CONDITION inflow
+  REGION top
+END
+noskip
+
+
 BOUNDARY_CONDITION inflow
   FLOW_CONDITION inflow
   TRANSPORT_CONDITION inflow
-  REGION surface
+  REGION top
 END
 
-
+skip
 BOUNDARY_CONDITION outflow
   FLOW_CONDITION outflow
   TRANSPORT_CONDITION initial
