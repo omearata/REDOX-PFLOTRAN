@@ -1,0 +1,1102 @@
+#Description: Redox ladder ation), with ELM CTC bgc sandboxes
+# Rate constants estimated to show different processes
+# srun -A ccsi -p burst -N 1 -n 1 -c 1 --mem=8g -t 00:30:00 --pty bash -i
+# /home/omearata/models/pflotran-elm-interface/src/pflotran/pflotran -pflotranin Erin.in
+
+# Description: Simple microbial decomposition and dissolution to DOM network
+# Rate constants estimated to show different processes
+
+SIMULATION
+  SIMULATION_TYPE SUBSURFACE
+  PROCESS_MODELS
+    SUBSURFACE_FLOW flow
+      MODE GENERAL
+      OPTIONS
+        ARITHMETIC_GAS_DIFFUSIVE_DENSITY
+        ISOTHERMAL
+        REPLACE_INIT_PARAMS_ON_RESTART
+      /
+    /    
+    SUBSURFACE_TRANSPORT
+      MODE GIRT
+    /
+  /
+
+END
+
+
+
+SUBSURFACE
+
+#=========================== useful transport parameters =======================
+
+REFERENCE_LIQUID_DENSITY 1.d3
+
+
+#=========================== chemistry ========================================
+CHEMISTRY
+PRIMARY_SPECIES
+  #### NOTE: Beginning of auto-inserted primary species ####
+  DOM1
+  H+
+  O2(aq)
+  HCO3-
+  Fe+++
+  Fe++
+  NH4+
+  Tracer
+  Tracer2
+  Tracer3
+  CH4(aq)
+  Acetate-
+  H2(aq)
+  Mg++
+  Ca++
+  Na+
+  K+
+  #### NOTE: End of auto-inserted primary species ####
+/
+DECOUPLED_EQUILIBRIUM_REACTIONS
+  #### NOTE: Beginning of auto-inserted primary species ####
+  DOM1
+  H+
+  O2(aq)
+  HCO3-
+  Fe+++
+  Fe++
+  NH4+
+  Tracer
+  Tracer2
+  Tracer3
+  CH4(aq)
+  Acetate-
+  H2(aq)
+  Mg++
+  Ca++
+  Na+
+  K+
+  #### NOTE: End of auto-inserted primary species ####
+/
+SECONDARY_SPECIES
+  #### NOTE: Beginning of auto-inserted secondary species ####
+  CO2(aq)
+  OH-
+  FeCO3+
+  Fe(OH)4-
+  Acetic_acid(aq)
+  FeCH3COO+
+  FeIIIDOM1(aq)
+  FeIIDOM1(aq)
+  FeIIIAcetate(aq)
+  Fe(OH)2(aq)
+  FeCO3(aq)
+  CO3--
+  CaHCO3+
+  #### NOTE: End of auto-inserted secondary species ####
+/
+MINERALS
+  #### NOTE: Beginning of auto-inserted mineral species ####
+  Fe(OH)3
+  Fe(OH)2
+  Rock(s)
+  #### NOTE: End of auto-inserted mineral species ####
+/
+MINERAL_KINETICS
+  #### NOTE: Beginning of auto-inserted mineral kinetics ####
+  Fe(OH)3
+    RATE_CONSTANT  1.d-6 mol/m^2-sec
+  /
+  Fe(OH)2
+    RATE_CONSTANT  1.d-7 mol/m^2-sec
+  /
+  Rock(s)
+    RATE_CONSTANT  0.0 mol/m^2-sec
+  /
+  #### NOTE: End of auto-inserted mineral kinetics ####
+/
+IMMOBILE_SPECIES
+  #### NOTE: Beginning of auto-inserted immobile species ####
+  cellulose
+  HRimm
+  #### NOTE: End of auto-inserted immobile species ####
+/
+PASSIVE_GAS_SPECIES
+  #### NOTE: Beginning of auto-inserted gas species ####
+  CO2(g)
+  O2(g)
+  #### NOTE: End of auto-inserted gas species ####
+/
+SORPTION
+  #### NOTE: Beginning of auto-inserted sorption sites ####
+  SURFACE_COMPLEXATION_RXN
+    EQUILIBRIUM
+    MINERAL Rock(s)
+    SITE >Carboxylate- 1.00e+04
+    COMPLEXES
+      >Carboxylic_acid
+    /
+  /
+  ION_EXCHANGE_RXN
+    CEC 2.00e+03
+    CATIONS
+      Fe++ 1.00e-01
+      Fe+++ 3.00e-01
+      Mg++ 1.10e+00
+      Ca++ 4.10e+00
+      Na+ 1.00e+00 REFERENCE
+      K+ 9.00e-01
+      H+ 1.10e+00
+    /
+  /
+/
+
+#### NOTE: End of auto-inserted sorption sites ####
+#### NOTE: Beginning of auto-inserted reactions ####
+
+  # fermentation
+  MICROBIAL_REACTION
+    REACTION 1.00e+00 DOM1  + 6.67e-01 H2O  -> 3.33e-01 Acetate-  + 3.33e-01 HCO3-  + 6.67e-01 H+  + 6.67e-01 H2(aq)  + 3.33e-01 Tracer 
+    RATE_CONSTANT       7.d-8 !6.00e-08
+    MONOD
+      SPECIES_NAME        DOM1
+      HALF_SATURATION_CONSTANT 1.00e-02
+      THRESHOLD_CONCENTRATION 1.10e-15
+    /
+    INHIBITION
+      SPECIES_NAME        O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.00e-05
+    /
+    INHIBITION
+      SPECIES_NAME        Acetate-
+      TYPE MONOD
+      INHIBITION_CONSTANT 4.00e-02
+    /
+  /
+  
+  # DOM aerobic respiration
+  MICROBIAL_REACTION
+    REACTION 1.00e+00 DOM1  + 1.00e+00 O2(aq)  + 1.00e+00 H2O  -> 1.00e+00 HCO3-  + 1.00e+00 H+  + 1.00e+00 Tracer 
+    RATE_CONSTANT       3.80e-07 !1.80e-07
+    MONOD
+      SPECIES_NAME        O2(aq)
+      HALF_SATURATION_CONSTANT 1.00e-08
+      THRESHOLD_CONCENTRATION 0.00e+00
+    /
+    MONOD
+      SPECIES_NAME        DOM1
+      HALF_SATURATION_CONSTANT 1.00e-06 ! 1.00e-02
+      THRESHOLD_CONCENTRATION 1.10e-16
+    /
+    INHIBITION
+      SPECIES_NAME        O2(aq)
+      TYPE THRESHOLD 7034445
+      INHIBITION_CONSTANT 1.00e-04
+    /
+  /
+
+
+  # Fe(II) abiotic oxidation
+  GENERAL_REACTION
+    REACTION 1.00e+00 Fe++  + 1.00e+00 O2(aq)  + 2.00e+00 H+  <-> 1.00e+00 Fe+++  + 5.00e-01 H2O + Tracer3
+    FORWARD_RATE        1.00e3 #1.00e-02
+    BACKWARD_RATE       0.00e-06
+  /
+
+
+  # Fe(II) microbial oxidation
+  MICROBIAL_REACTION
+    REACTION 1.00e+00 Fe++  + 2.50e-01 O2(aq)  + 1.00e+00 H+  -> 1.00e+00 Fe+++  + 5.00e-01 H2O 
+    RATE_CONSTANT      5.5e-06 !1.5e-06
+    MONOD
+      SPECIES_NAME        O2(aq)
+!      HALF_SATURATION_CONSTANT 1.00e-04
+      HALF_SATURATION_CONSTANT 1.00e-08
+      THRESHOLD_CONCENTRATION 0.00e+00
+    /
+    MONOD
+      SPECIES_NAME        Fe++
+!      HALF_SATURATION_CONSTANT 1.00e-01
+      HALF_SATURATION_CONSTANT 1.00e-04
+      THRESHOLD_CONCENTRATION 1.10e-15
+    /
+  /
+
+  # Hydrogenotrophic methanogenesis
+  MICROBIAL_REACTION
+    REACTION 4.00e+00 H2(aq)  + 1.00e+00 HCO3-  + 1.00e+00 H+  -> 1.00e+00 CH4(aq)  + 3.00e+00 H2O 
+    RATE_CONSTANT       7.2e-09
+    MONOD
+      SPECIES_NAME        H2(aq)
+      HALF_SATURATION_CONSTANT 1.00e-01
+      THRESHOLD_CONCENTRATION 1.10e-15
+    /
+    MONOD
+      SPECIES_NAME        HCO3-
+      HALF_SATURATION_CONSTANT 1.00e-01
+      THRESHOLD_CONCENTRATION 1.10e-15
+    /
+    INHIBITION
+      SPECIES_NAME        O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.00e-05
+    /
+    INHIBITION
+      SPECIES_NAME        Fe+++
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.00e-10
+    /
+    INHIBITION
+      SPECIES_NAME        H+
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.78e-07
+    /
+  /
+
+  # Acetate aerobic respiration
+  MICROBIAL_REACTION
+    REACTION 1.00e+00 Acetate-  + 2.00e+00 O2(aq)  -> 2.00e+00 HCO3-  + 2.00e+00 H+  + 2.00e+00 Tracer 
+    RATE_CONSTANT       6.00e-07 !3.00e-07
+    MONOD
+      SPECIES_NAME        O2(aq)
+      HALF_SATURATION_CONSTANT 1.00e-04
+      THRESHOLD_CONCENTRATION 0.00e+00
+    /
+    MONOD
+      SPECIES_NAME        Acetate-
+      HALF_SATURATION_CONSTANT 4.00e-02
+      THRESHOLD_CONCENTRATION 1.10e-16
+    /
+  /
+
+  # Hydrogen oxidation
+  MICROBIAL_REACTION
+    REACTION 2.00e+00 H2(aq)  + 1.00e+00 O2(aq)  -> 2.00e+00 H2O 
+    RATE_CONSTANT       1.5e-06
+    MONOD
+      SPECIES_NAME        H2(aq)
+      HALF_SATURATION_CONSTANT 1.00e-01
+      THRESHOLD_CONCENTRATION 1.10e-15
+    /
+    MONOD
+      SPECIES_NAME        O2(aq)
+      HALF_SATURATION_CONSTANT 1.00e-04
+      THRESHOLD_CONCENTRATION 0.00e+00
+    /
+  /
+
+  # Fe(III) reduction
+  MICROBIAL_REACTION
+    REACTION 1.00e+00 Acetate-  + 8.00e+00 Fe+++  + 4.00e+00 H2O  -> 2.00e+00 HCO3-  + 8.00e+00 Fe++  + 9.00e+00 H+  + 2.00e+00 Tracer 
+    RATE_CONSTANT   3.25e-08    !3.25e-08
+    MONOD
+      SPECIES_NAME        Acetate-
+      HALF_SATURATION_CONSTANT 1.00e-03
+      THRESHOLD_CONCENTRATION 1.10e-15
+    /
+    MONOD
+      SPECIES_NAME        Fe+++
+      HALF_SATURATION_CONSTANT 1.00e-10
+      THRESHOLD_CONCENTRATION 1.10e-15
+    /
+skip
+    INHIBITION
+      SPECIES_NAME        O2(aq)
+      TYPE THRESHOLD 7034445
+      INHIBITION_CONSTANT 5.00e-05
+    /
+noskip
+  /
+
+  # Ebullition
+  MICROBIAL_REACTION
+    REACTION 1.00e+00 CH4(aq) -> 1.00e+00 Tracer2
+    RATE_CONSTANT       3.00e-08
+    MONOD
+      SPECIES_NAME        CH4(aq)
+      HALF_SATURATION_CONSTANT 4.00e-02
+      THRESHOLD_CONCENTRATION 1.10e-15
+    /
+    INHIBITION
+      SPECIES_NAME        CH4(aq)
+      TYPE INVERSE_MONOD
+      INHIBITION_CONSTANT 2.5e-3
+    /
+  /
+
+  # Acetaclastic methanogenesis
+  MICROBIAL_REACTION
+    REACTION 1.00e+00 Acetate-  + 1.00e+00 H2O  -> 1.00e+00 CH4(aq)  + 1.00e+00 HCO3-  + 1.00e+00 Tracer
+    RATE_CONSTANT       1.5e-8
+    MONOD
+      SPECIES_NAME        Acetate-
+      HALF_SATURATION_CONSTANT 4.00e-02
+      THRESHOLD_CONCENTRATION 1.10e-15
+    /
+    INHIBITION
+      SPECIES_NAME        O2(aq)
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.00e-5
+    /
+    INHIBITION
+      SPECIES_NAME        Fe+++
+      TYPE MONOD
+      INHIBITION_CONSTANT 1.00e-10
+    /
+    INHIBITION
+      SPECIES_NAME        H+
+      TYPE MONOD
+      INHIBITION_CONSTANT 2.88e-06
+    /
+    INHIBITION
+      SPECIES_NAME        H+
+      TYPE INVERSE_MONOD
+      INHIBITION_CONSTANT 2.88e-06
+    /
+  /
+skip
+  REACTION_SANDBOX
+    SOMDECOMP
+      POOLS
+        cellulose           50.00
+        DOM1                50.00
+      /
+    # Hydrolysis
+    REACTION
+      UPSTREAM_POOL       cellulose
+      DOWNSTREAM_POOL     DOM1                1.00e+00
+      TURNOVER_TIME       1.00e-08 y
+      INHIBITION
+        SPECIES_NAME        DOM1
+        TYPE MONOD
+        INHIBITION_CONSTANT 1.00e-01
+      /
+    /
+      CO2_SPECIES_NAME Tracer
+      O2_SPECIES_NAME O2(aq)
+    /
+  /
+noskip
+  #### NOTE: End of auto-inserted reactions ####
+  LOG_FORMULATION
+  TRUNCATE_CONCENTRATION 1.00e-25
+  DATABASE /home/omearata/TAI/hanford.dat
+
+
+
+  OUTPUT
+    PH
+    FREE_ION
+      O2(aq)
+      CH4(aq)
+ !     DOM1
+ !     NH4+
+      HCO3-
+
+    TOTAL
+      Fe++
+      Fe+++
+      DOM1
+      Tracer2
+      Tracer3
+
+    MINERALS
+  /
+END
+
+#=========================== transport constraints ============================
+CONSTRAINT initial
+  IMMOBILE
+    #### NOTE: Beginning of auto-inserted immobile species ####
+    cellulose            8.00e+03
+    HRimm                1.00e-20
+    #### NOTE: End of auto-inserted immobile species ####
+  /
+  CONCENTRATIONS
+    #### NOTE: Beginning of auto-inserted concentration constraints ####
+    DOM1                5.00e-02
+    H+                  5.0 P
+    O2(aq)              2.d-4 T O2(g)
+    HCO3-               4e-6 T CO2(g)
+    Fe+++               9.37e-5 M Fe(OH)3
+    Fe++                5.e-3
+    NH4+                1.00e-15
+    Tracer              1.00e-15
+    Tracer2             1.00e-15
+    Tracer3             1.00e-15
+    CH4(aq)             1.00e-15
+    Acetate-            1.00e-15
+    H2(aq)              1.00e-15
+    Mg++                5.00e-04
+    Ca++                5.00e-04
+    Na+                 2.00e-03
+    K+                  2.00e-05
+    #### NOTE: End of auto-inserted concentration constraints ####
+  /
+  MINERALS
+    #### NOTE: Beginning of auto-inserted mineral constraints ####
+    Fe(OH)3             2.4d-6  1.d2 m^2/m^3
+    Fe(OH)2             1.76e-1  1.d2 m^2/m^3
+    Rock(s)             0.5  5.0e3 m^2/m^3
+    #### NOTE: End of auto-inserted mineral constraints ####
+  /
+
+  
+END
+
+CONSTRAINT sed_air_interface
+  CONCENTRATIONS
+    #### NOTE: Beginning of auto-inserted concentration constraints ####
+    DOM1                5.00e-02
+    H+                  5.0 P
+    O2(aq)              0.21 G O2(g)
+    HCO3-               0.01 G CO2(g)
+    Fe+++               .37e-5 M Fe(OH)3
+    Fe++                0.37e-15
+    NH4+                1.00e-15
+    Tracer              1.00e-15
+    Tracer2             1.00e-15
+    Tracer3             1.00e-15
+    CH4(aq)             1.00e-15
+    Acetate-            1.00e-15
+    H2(aq)              1.00e-15
+    Mg++                5.00e-15
+    Ca++                5.00e-15
+    Na+                 2.00e-15
+    K+                  2.00e-15
+    #### NOTE: End of auto-inserted concentration constraints ####
+  /
+    MINERALS
+    #### NOTE: Beginning of auto-inserted mineral constraints ####
+    Fe(OH)3             0.875d-3  1.d2 m^2/m^3
+    Fe(OH)2             0.0e-20  1.d2 m^2/m^3
+    Rock(s)             0.5  5.0e3 m^2/m^3
+    #### NOTE: End of auto-inserted mineral constraints ####
+  /
+  END
+
+CONSTRAINT drain
+  CONCENTRATIONS
+    #### NOTE: Beginning of auto-inserted concentration constraints ####
+    DOM1                1.00e-20
+    H+                  7.0 P
+    O2(aq)              1.d-20 T O2(g)
+    HCO3-               1.e-20 T CO2(g)
+    Fe+++               1.e-15 M Fe(OH)3
+    Fe++                1.e-15
+    NH4+                1.00e-15
+    Tracer              1.00e-15
+    Tracer2             1.00e-15
+    Tracer3             1.00e-15
+    CH4(aq)             1.00e-15
+    Acetate-            1.00e-15
+    H2(aq)              1.00e-15
+    Mg++                5.00e-15
+    Ca++                5.00e-15
+    Na+                 2.00e-15
+    K+                  2.00e-15
+    #### NOTE: End of auto-inserted concentration constraints ####
+  /
+END
+
+CONSTRAINT recharge
+  CONCENTRATIONS
+    #### NOTE: Beginning of auto-inserted concentration constraints ####
+    DOM1                5.00e-20
+    H+                  7.0 P
+    O2(aq)              1.00e-25 T O2(g)
+    HCO3-               1.00e-25 T CO2(g)
+    Fe+++               1.00e-25 T Fe(OH)3
+    Fe++                0.37e-23
+    NH4+                1.00e-25
+    Tracer              1.00e-25
+    Tracer2             1.00e-25
+    Tracer3             1.00e-25
+    CH4(aq)             1.00e-25
+    Acetate-            1.00e-25
+    H2(aq)              1.00e-25
+    Mg++                5.00e-25
+    Ca++                5.00e-25
+    Na+                 2.00e-25
+    K+                  2.00e-25
+    #### NOTE: End of auto-inserted concentration constraints ####
+  /
+END
+#=========================== solver options ===================================
+NUMERICAL_METHODS TRANSPORT
+! For single point sim, SOLVER DIRECT and other options commented out seems to work the best 
+LINEAR_SOLVER
+  SOLVER DIRECT
+  !SOLVER ITERATIVE     ! default: ITERATIVE or KRYLOV: KSP_TYPE of BCGS and PC_TYPE of BJACOBI, if not modified below
+  !PC_TYPE JACOBI       ! default (iterative): BJACOBI. 
+  !KSP_TYPE fgmres      ! default: BCGS. NOT much difference 
+END
+
+NEWTON_SOLVER
+  ATOL 1.d-20
+  RTOL 1.d-15
+  STOL 1.d-10
+  ITOL 1.d-10
+  !NUMERICAL_JACOBIAN
+END
+END
+
+#=========================== discretization ===================================
+GRID
+  TYPE structured
+  ORIGIN 0.d0 0.d0 0.d0
+  NXYZ 1 1 10
+  DXYZ 
+     1.0d0 
+     1.0d0     
+     0.05d0 \
+     0.05d0 \
+     0.05d0 \     
+     0.05d0 \  
+     0.05d0 \      
+     0.05d0 \
+     0.05d0 \
+     0.05d0 \
+     0.05d0 \
+     0.05d0
+  /
+END
+
+PROC 1 1 1
+
+#=========================== fluid properties =================================
+FLUID_PROPERTY
+  PHASE LIQUID
+  DIFFUSION_COEFFICIENT 1.d-6
+END
+
+FLUID_PROPERTY
+  PHASE gas
+  DIFFUSION_COEFFICIENT 5d-6
+END
+
+#=========================== material properties ==============================
+MATERIAL_PROPERTY soil1
+  ID 1
+  POROSITY 0.8d0
+  !SOIL_COMPRESSIBILITY_FUNCTION DEFAULT     ! BRAGFLO compressed porosity has mathematical issue at high pressure
+  ! 1d-7~1d-8 equivalent to ice expansion of volume, upon 'default' or 'BRAGFLO'
+  ! beyond this range may cause tiny-time stepping
+  SOIL_COMPRESSIBILITY 1.d-07               ! 1d-7~1d-8 is a critical value for freezing expansion in soil;
+  SOIL_REFERENCE_PRESSURE 201325.d0
+  ROCK_DENSITY 2650.0d0
+  SPECIFIC_HEAT 830.0d0
+  THERMAL_CONDUCTIVITY_DRY 0.12037926674717922d0
+  THERMAL_CONDUCTIVITY_WET 1.6082691464310437d0
+  CHARACTERISTIC_CURVES sf01
+  PERMEABILITY
+    PERM_X 6.5870260083342112E-013
+    PERM_Y 6.5870260083342112E-013
+    PERM_Z 4.5870260083342112E-017 !9.5870260083342112d-017 !PERM_Z 4.5870260083342112d-017 
+  /
+/
+MATERIAL_PROPERTY soil2
+  ID 2
+  POROSITY 0.80d0
+  !SOIL_COMPRESSIBILITY_FUNCTION DEFAULT     ! BRAGFLO compressed porosity has mathematical issue at high pressure
+  ! 1d-7~1d-8 equivalent to ice expansion of volume, upon 'default' or 'BRAGFLO'
+  ! beyond this range may cause tiny-time stepping
+  SOIL_COMPRESSIBILITY 1.d-07               ! 1d-7~1d-8 is a critical value for freezing expansion in soil;
+  SOIL_REFERENCE_PRESSURE 201325.d0
+  ROCK_DENSITY 2650.0d0
+  SPECIFIC_HEAT 830.0d0
+  THERMAL_CONDUCTIVITY_DRY 0.12037926674717922d0
+  THERMAL_CONDUCTIVITY_WET 1.6082691464310437d0
+  CHARACTERISTIC_CURVES sf01
+  PERMEABILITY
+    PERM_X 6.5870260083342112E-013
+    PERM_Y 6.5870260083342112E-013
+    PERM_Z 1.5870260083342112E-013 !1.d-13 !7.5870260083342112d-015 !PERM_Z 3.5870260083342112d-016
+  /
+/
+
+MATERIAL_PROPERTY soil3
+  ID 3
+  POROSITY 0.60d0
+  !SOIL_COMPRESS5BILITY_FUNCTION DEFAULT     ! BRAGFLO compressed porosity has mathematical issue at high pressure
+  ! 1d-7~1d-8 equivalent to ice expansion of volume, upon 'default' or 'BRAGFLO'
+  ! beyond this range may cause tiny-time stepping
+  SOIL_COMPRESSIBILITY 1.d-07               ! 1d-7~1d-8 is a critical value for freezing expansion in soil;
+  SOIL_REFERENCE_PRESSURE 201325.d0
+  ROCK_DENSITY 2650.0d0
+  SPECIFIC_HEAT 830.0d0
+  THERMAL_CONDUCTIVITY_DRY 0.12037926674717922d0
+  THERMAL_CONDUCTIVITY_WET 1.6082691464310437d0
+  CHARACTERISTIC_CURVES sf01
+  PERMEABILITY
+    PERM_X 6.5870260083342112E-013
+    PERM_Y 6.5870260083342112E-013
+    PERM_Z 1.5870260083342112E-013 !9.d-13 !5.5870260083342112d-012 !PERM_Z 7.5870260083342112d-015
+  /
+/
+
+# == saturation / permeability functions ======================================
+
+CHARACTERISTIC_CURVES sf01
+  SATURATION_FUNCTION VAN_GENUCHTEN
+    LIQUID_RESIDUAL_SATURATION 0.d0
+    ALPHA 1.d-4
+    M 0.5d0
+    MAX_CAPILLARY_PRESSURE 1.d6
+  /
+  PERMEABILITY_FUNCTION MUALEM
+    PHASE LIQUID
+    LIQUID_RESIDUAL_SATURATION 0.d0
+    M 0.5d0
+  /
+  PERMEABILITY_FUNCTION MUALEM_VG_GAS
+    PHASE GAS
+    LIQUID_RESIDUAL_SATURATION 0.d0
+    GAS_RESIDUAL_SATURATION 1.d-5
+    M 0.5d0
+  /
+END
+
+#=========================== output options ===================================
+OUTPUT
+  !PERIODIC_OBSERVATION TIMESTEP 1
+  SCREEN PERIODIC 10000
+  PERIODIC TIME 1.d0 d
+  FORMAT TECPLOT POINT
+  OBSERVATION_FILE
+  PERIODIC TIME 1.d0 d
+  VARIABLES
+ 	NO_FLOW_VARIABLES
+	NO_ENERGY_VARIABLES
+  LIQUID_SATURATION
+  /
+/
+END
+
+#=========================== times ============================================
+TIME
+  FINAL_TIME 100 d
+  INITIAL_TIMESTEP_SIZE 1.0d0 h
+  MAXIMUM_TIMESTEP_SIZE 12.d0 h
+END
+
+#=========================== regions ==========================================
+REGION top
+  COORDINATES
+    0.d0 0.d0  0.5d0
+    6.d-2 6.d-2  0.4d0
+  /
+  FACE TOP
+END
+
+REGION middle
+  COORDINATES
+    0.d0 0.d0  0.4d0
+    6.d-2 6.d-2  0.3d0
+  /
+  FACE BOTTOM
+END
+
+REGION surface
+  COORDINATES
+    0.d0 0.d0  0.5d0
+    6.d-2 6.d-2  0.49d0
+  /
+  FACE BOTTOM
+END
+
+REGION bottom
+  COORDINATES
+    0.d0 0.d0 0.0d0
+    6.d-2 6.d-2 0.3d0
+  /
+  FACE BOTTOM
+END
+
+REGION drain
+  COORDINATES
+    0.d0 0.d0 0.0d0
+    6.d-2 6.d-2 0.4d0
+  /
+  FACE BOTTOM
+END
+
+REGION all
+  COORDINATES
+    0.d0 0.d0 0.d0
+    6.d-2 6.d-2  0.5d0
+  /
+  FACE TOP
+END
+
+REGION obs_pt1
+  COORDINATE 3.d-2 3.d-2 0.48
+END
+
+REGION obs_pt2
+  COORDINATE 3.d-2 3.d-2 0.38
+END
+
+REGION obs_pt3
+  COORDINATE 3.d-2 3.d-2 0.28
+END
+
+REGION obs_pt4
+  COORDINATE 3.d-2 3.d-2 0.18
+END
+
+REGION obs_pt5
+  COORDINATE 3.d-2 3.d-2 0.08
+END
+
+#=========================== observation points ===============================
+OBSERVATION
+  REGION obs_pt1
+END
+
+OBSERVATION
+  REGION obs_pt2
+END
+
+OBSERVATION
+  REGION obs_pt3
+END
+
+OBSERVATION
+  REGION obs_pt4
+END
+
+OBSERVATION
+  REGION obs_pt5
+END
+
+#=========================== transport conditions =============================
+FLOW_CONDITION initial
+  TYPE
+    LIQUID_PRESSURE dirichlet
+    MOLE_FRACTION dirichlet
+    TEMPERATURE dirichlet
+  /
+  LIQUID_PRESSURE 2.d5
+  MOLE_FRACTION 1.d-8
+  TEMPERATURE 4.d0
+/
+skip
+FLOW_CONDITION sed_air_interface
+  TYPE
+    LIQUID_PRESSURE dirichlet
+    MOLE_FRACTION dirichlet
+    TEMPERATURE dirichlet
+  /
+  LIQUID_PRESSURE 2.d5
+  MOLE_FRACTION 1.d1
+  TEMPERATURE 4.d0
+/
+noskip
+
+FLOW_CONDITION sed_air_interface
+  TYPE
+    GAS_PRESSURE dirichlet
+    GAS_SATURATION dirichlet
+    TEMPERATURE dirichlet
+  /
+  GAS_PRESSURE 2.d5
+  GAS_SATURATION 0.15
+  TEMPERATURE 4.d0
+/
+
+
+FLOW_CONDITION drain
+  TYPE
+    RATE volumetric_rate
+  /
+  RATE LIST
+  TIME_UNITS d
+  DATA_UNITS m^3/s
+       ! liquid gas   energy
+0.00	0.00E+00	0.d0	0.d0
+0.50	0.00E+00	0.d0	0.d0
+1.00	0.00E+00	0.d0	0.d0
+1.50	0.00E+00	0.d0	0.d0
+2.00	-5.22E-09	0.d0	0.d0
+skip
+2.00	-3.22E-07	0.d0	0.d0
+2.50	-2.90E-07	0.d0	0.d0
+3.00	-2.62E-07	0.d0	0.d0
+3.50	-2.35E-07	0.d0	0.d0
+4.00	-2.10E-07	0.d0	0.d0
+4.50	-1.88E-07	0.d0	0.d0
+5.00	-1.67E-07	0.d0	0.d0
+5.50	-1.49E-07	0.d0	0.d0
+6.00	-1.32E-07	0.d0	0.d0
+6.50	-1.17E-07	0.d0	0.d0
+7.00	-1.02E-07	0.d0	0.d0
+7.50	-9.00E-08	0.d0	0.d0
+8.00	-7.92E-08	0.d0	0.d0
+8.50	-6.90E-09	0.d0	0.d0
+9.00	-6.02E-09	0.d0	0.d0
+9.50	-5.24E-09	0.d0	0.d0
+10.00	-4.56E-09	0.d0	0.d0
+10.50	-3.96E-09	0.d0	0.d0
+11.00	-3.43E-09	0.d0	0.d0
+11.50	-2.99E-09	0.d0	0.d0
+12.00	-2.60E-09	0.d0	0.d0
+12.50	-2.27E-09	0.d0	0.d0
+13.00	-1.99E-09	0.d0	0.d0
+13.50	-1.75E-09	0.d0	0.d0
+14.00	-1.72E-09	0.d0	0.d0
+14.50	-1.67E-09	0.d0	0.d0
+15.00	-1.62E-09	0.d0	0.d0
+15.50	-1.57E-09	0.d0	0.d0
+16.00	-1.52E-09	0.d0	0.d0
+16.50	-1.49E-09	0.d0	0.d0
+17.00	-1.43E-09	0.d0	0.d0
+17.50	-1.39E-09	0.d0	0.d0
+18.00	-1.34E-09	0.d0	0.d0
+18.50	-1.30E-09	0.d0	0.d0
+19.00	-1.25E-09	0.d0	0.d0
+19.50	-1.20E-09	0.d0	0.d0
+20.00	-1.16E-09	0.d0	0.d0
+20.50	-1.11E-09	0.d0	0.d0
+21.00	-1.07E-09	0.d0	0.d0
+21.50	-1.02E-09	0.d0	0.d0
+22.00	-9.72E-10	0.d0	0.d0
+22.50	-9.29E-10	0.d0	0.d0
+23.00	-8.86E-10	0.d0	0.d0
+23.50	-8.35E-10	0.d0	0.d0
+24.00	-7.92E-10	0.d0	0.d0
+24.50	-7.42E-10	0.d0	0.d0
+25.00	-6.98E-10	0.d0	0.d0
+25.50	-6.53E-10	0.d0	0.d0
+26.00	-6.06E-10	0.d0	0.d0
+26.50	-5.60E-10	0.d0	0.d0
+27.00	-5.14E-10	0.d0	0.d0
+27.50	-4.68E-10	0.d0	0.d0
+28.00	-4.22E-10	0.d0	0.d0
+28.50	-3.77E-10	0.d0	0.d0
+29.00	-3.30E-10	0.d0	0.d0
+29.50	-2.84E-10	0.d0	0.d0
+30.00	-2.39E-10	0.d0	0.d0
+30.50	-1.92E-10	0.d0	0.d0
+31.00	-1.46E-10	0.d0	0.d0
+31.50	-1.00E-10	0.d0	0.d0
+32.00	-5.42E-11	0.d0	0.d0
+32.50	0.00E+00	0.d0	0.d0
+33.00	0.00E+00	0.d0	0.d0
+33.50	0.00E+00	0.d0	0.d0
+34.00	0.00E+00	0.d0	0.d0
+34.50	0.00E+00	0.d0	0.d0
+35.00	0.00E+00	0.d0	0.d0
+35.50	0.00E+00	0.d0	0.d0
+36.00	0.00E+00	0.d0	0.d0
+36.50	0.00E+00	0.d0	0.d0
+37.00	0.00E+00	0.d0	0.d0
+37.50	0.00E+00	0.d0	0.d0
+38.00	0.00E+00	0.d0	0.d0
+38.50	0.00E+00	0.d0	0.d0
+39.00	0.00E+00	0.d0	0.d0
+39.50	0.00E+00	0.d0	0.d0
+40.00	0.00E+00	0.d0	0.d0
+40.50	0.00E+00	0.d0	0.d0
+41.00	0.00E+00	0.d0	0.d0
+41.50	0.00E+00	0.d0	0.d0
+42.00	0.00E+00	0.d0	0.d0
+42.50	0.00E+00	0.d0	0.d0
+43.00	0.00E+00	0.d0	0.d0
+43.50	0.00E+00	0.d0	0.d0
+44.00	0.00E+00	0.d0	0.d0
+44.50	0.00E+00	0.d0	0.d0
+45.00	0.00E+00	0.d0	0.d0
+45.50	0.00E+00	0.d0	0.d0
+46.00	0.00E+00	0.d0	0.d0
+46.50	0.00E+00	0.d0	0.d0
+47.00	0.00E+00	0.d0	0.d0
+47.50	0.00E+00	0.d0	0.d0
+48.00	0.00E+00	0.d0	0.d0
+48.50	0.00E+00	0.d0	0.d0
+49.00	0.00E+00	0.d0	0.d0
+49.50	0.00E+00	0.d0	0.d0
+50.00	0.00E+00	0.d0	0.d0
+50.50	0.00E+00	0.d0	0.d0
+51.00	0.00E+00	0.d0	0.d0
+51.50	0.00E+00	0.d0	0.d0
+52.00	0.00E+00	0.d0	0.d0
+52.50	0.00E+00	0.d0	0.d0
+53.00	0.00E+00	0.d0	0.d0
+53.50	0.00E+00	0.d0	0.d0
+54.00	0.00E+00	0.d0	0.d0
+54.50	0.00E+00	0.d0	0.d0
+55.00	-4.35E-09	0.d0	0.d0
+55.00	-2.35E-07	0.d0	0.d0
+55.50	-2.21E-07	0.d0	0.d0
+56.00	-2.08E-07	0.d0	0.d0
+56.50	-1.96E-07	0.d0	0.d0
+57.00	-1.82E-07	0.d0	0.d0
+57.50	-1.72E-07	0.d0	0.d0
+58.00	-1.61E-07	0.d0	0.d0
+58.50	-1.50E-07	0.d0	0.d0
+59.00	-1.40E-07	0.d0	0.d0
+59.50	-1.31E-07	0.d0	0.d0
+60.00	-1.21E-07	0.d0	0.d0
+60.50	-1.13E-07	0.d0	0.d0
+61.00	-1.05E-07	0.d0	0.d0
+61.50	-9.79E-08	0.d0	0.d0
+62.00	-9.07E-08	0.d0	0.d0
+62.50	-8.35E-08	0.d0	0.d0
+63.00	-7.70E-08	0.d0	0.d0
+63.50	-7.12E-09	0.d0	0.d0
+64.00	-6.55E-09	0.d0	0.d0
+64.50	-6.02E-09	0.d0	0.d0
+65.00	-5.53E-09	0.d0	0.d0
+65.50	-5.08E-09	0.d0	0.d0
+66.00	-4.64E-09	0.d0	0.d0
+66.50	-4.25E-09	0.d0	0.d0
+67.00	-3.88E-09	0.d0	0.d0
+67.50	-3.54E-09	0.d0	0.d0
+68.00	-3.23E-09	0.d0	0.d0
+68.50	-2.94E-09	0.d0	0.d0
+69.00	-2.68E-09	0.d0	0.d0
+69.50	-2.44E-09	0.d0	0.d0
+70.00	-2.22E-09	0.d0	0.d0
+70.50	-2.03E-09	0.d0	0.d0
+71.00	-1.85E-09	0.d0	0.d0
+71.50	-1.69E-09	0.d0	0.d0
+72.00	-1.55E-09	0.d0	0.d0
+72.50	-1.43E-09	0.d0	0.d0
+73.00	-1.32E-09	0.d0	0.d0
+73.50	-1.22E-09	0.d0	0.d0
+74.00	-1.10E-09	0.d0	0.d0
+74.50	-9.79E-10	0.d0	0.d0
+75.00	-9.58E-10	0.d0	0.d0
+75.50	-9.29E-10	0.d0	0.d0
+76.00	-9.72E-10	0.d0	0.d0
+76.50	-8.78E-10	0.d0	0.d0
+77.00	-8.50E-10	0.d0	0.d0
+77.50	-8.21E-10	0.d0	0.d0
+78.00	-7.99E-10	0.d0	0.d0
+78.50	-7.70E-10	0.d0	0.d0
+79.00	-7.42E-10	0.d0	0.d0
+79.50	-7.15E-10	0.d0	0.d0
+80.00	-6.89E-10	0.d0	0.d0
+80.50	-6.62E-10	0.d0	0.d0
+81.00	-6.36E-10	0.d0	0.d0
+81.50	-6.10E-10	0.d0	0.d0
+82.00	-5.82E-10	0.d0	0.d0
+82.50	-5.56E-10	0.d0	0.d0
+83.00	-5.29E-10	0.d0	0.d0
+83.50	-5.03E-10	0.d0	0.d0
+84.00	-4.76E-10	0.d0	0.d0
+84.50	-4.49E-10	0.d0	0.d0
+85.00	-4.22E-10	0.d0	0.d0
+85.50	-3.96E-10	0.d0	0.d0
+86.00	-3.70E-10	0.d0	0.d0
+86.50	-3.43E-10	0.d0	0.d0
+87.00	-3.16E-10	0.d0	0.d0
+87.50	-2.89E-10	0.d0	0.d0
+88.00	-2.63E-10	0.d0	0.d0
+88.50	-2.36E-10	0.d0	0.d0
+89.00	-2.10E-10	0.d0	0.d0
+89.50	-1.82E-10	0.d0	0.d0
+90.00	-1.56E-10	0.d0	0.d0
+noskip
+90.50 0.d0  0.d0  0.d0
+/
+/
+
+
+TRANSPORT_CONDITION drain
+  TYPE dirichlet
+  CONSTRAINT_LIST
+    0.d0 drain
+  /
+END
+
+FLOW_CONDITION recharge
+  TYPE
+    RATE volumetric_rate
+  /
+  RATE LIST
+  TIME_UNITS d
+  DATA_UNITS m^3/s
+       ! liquid gas   energy
+0.0	0.d0	0.d0	0.d0
+38.5  6.2d-6	0.d0	0.d0
+50.0  0.d0	0.d0	0.d0
+/
+/
+
+
+TRANSPORT_CONDITION recharge
+  TYPE dirichlet
+  CONSTRAINT_LIST
+    0.d0 recharge
+  /
+END
+
+TRANSPORT_CONDITION initial
+  TYPE dirichlet
+  CONSTRAINT_LIST
+    0.d0 initial
+  /
+END
+
+TRANSPORT_CONDITION sed_air_interface
+  TYPE dirichlet
+  CONSTRAINT_LIST
+   0.d0 sed_air_interface
+  /
+END
+
+
+#=========================== condition couplers ===============================
+# initial condition
+INITIAL_CONDITION
+  TRANSPORT_CONDITION initial
+  FLOW_CONDITION initial
+  REGION all
+END
+skip
+SOURCE_SINK sed_air_interface
+  TRANSPORT_CONDITION sed_air_interface
+  FLOW_CONDITION sed_air_interface
+  REGION surface
+END
+noskip
+
+BOUNDARY_CONDITION sed_air_interface
+  TRANSPORT_CONDITION sed_air_interface
+  FLOW_CONDITION sed_air_interface
+  REGION surface
+END
+
+SOURCE_SINK recharge
+  FLOW_CONDITION recharge
+  TRANSPORT_CONDITION recharge
+  REGION all
+END
+
+
+SOURCE_SINK drain
+  FLOW_CONDITION drain
+  TRANSPORT_CONDITION drain
+  REGION drain
+END
+
+#=========================== stratigraphy couplers ============================
+STRATA
+  REGION top
+  MATERIAL soil1
+END
+
+STRATA
+  REGION middle
+  MATERIAL soil3
+END
+
+STRATA
+  REGION bottom
+  MATERIAL soil2
+END
+
+END_SUBSURFACE
+
